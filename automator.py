@@ -1,4 +1,5 @@
 import io
+import os
 import requests
 from bs4 import BeautifulSoup
 from PyPDF2 import PdfReader
@@ -6,6 +7,9 @@ from docx import Document
 from openpyxl import load_workbook
 from openai import OpenAI
 from config import OPENAI_API_KEY, MODEL, MAX_TOKENS
+
+if not OPENAI_API_KEY or OPENAI_API_KEY == "YOUR_API_KEY_HERE":
+    raise RuntimeError("OPENAI_API_KEY environment variable is not set!")
 
 client = OpenAI(api_key=OPENAI_API_KEY, timeout=120.0)
 
