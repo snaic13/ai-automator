@@ -59,7 +59,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .hero__title{font-family:'Noto Serif SC','Georgia',serif;font-size:56px;font-weight:600;color:var(--ink);letter-spacing:1px;margin-bottom:16px}
 .hero__subtitle{font-family:'Inter',sans-serif;font-size:18px;color:var(--ink-soft);font-weight:300;line-height:1.6;max-width:600px;margin-bottom:40px}
 
-.auth-card{background:rgba(252,250,248,0.92);backdrop-filter:blur(24px);border:1px solid rgba(0,0,0,0.06);border-radius:16px;padding:36px;width:100%;max-width:400px;box-shadow:0 8px 40px rgba(0,0,0,0.08)}
+.auth-card{background:rgba(252,250,248,0.92);backdrop-filter:blur(24px);border:1px solid rgba(0,0,0,0.06);border-radius:16px;padding:36px;width:100%;max-width:400px;box-shadow:0 8px 40px rgba(0,0,0,0.08);overflow:hidden}
 
 .tabs{display:flex;margin-bottom:24px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
 .tab{flex:1;padding:10px;text-align:center;cursor:pointer;background:transparent;color:var(--ink-soft);font-size:14px;font-weight:500;transition:all 0.2s}
@@ -76,9 +76,9 @@ input::placeholder{color:#aaa}
 
 .error{color:#dc2626;text-align:center;margin-bottom:12px;font-size:13px}
 
-.features-row{display:flex;gap:12px;margin-top:28px;justify-content:center}
-.feat{padding:10px 16px;border:1px solid rgba(0,0,0,0.08);border-radius:8px;font-size:12px;color:var(--ink-soft);display:flex;align-items:center;gap:6px}
-.feat span{font-size:16px}
+.features-row{display:flex;gap:10px;margin-top:28px;justify-content:center;flex-wrap:wrap}
+.feat{padding:8px 14px;border:1px solid rgba(0,0,0,0.08);border-radius:8px;font-size:11px;color:var(--ink-soft);display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.feat span{font-size:14px}
 </style>
 </head>
 <body>
