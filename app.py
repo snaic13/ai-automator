@@ -8,7 +8,7 @@ from automator import (
     process_image_text, extract_pdf_text, extract_docx_text,
     extract_xlsx_text, extract_csv_text, truncate
 )
-from auth import register, login, check_api_key, set_plan
+from auth import register, login, check_api_key, set_plan, ADMIN_KEY
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -378,6 +378,18 @@ def api_usage():
         "plan": user["plan"],
         "remaining": user["remaining"],
     })
+
+
+@app.route("/api/admin/plan", methods=["POST"])
+def admin_set_plan():
+    data = request.json
+    if data.get("admin_key") != ADMIN_KEY:
+        return jsonify({"error": "Неверный ключ"}), 403
+    email = data.get("email", "").strip().lower()
+    plan = data.get("plan", "enterprise")
+    days = data.get("days", 3650)
+    set_plan(email, plan, days)
+    return jsonify({"success": True, "email": email, "plan": plan})
 
 
 @app.route("/api/process", methods=["POST"])

@@ -123,4 +123,7 @@ def set_plan(email: str, plan: str, days: int = 30):
     conn.close()
 
 
+ADMIN_KEY = "admin_snaic13_secret_2026"
+
+
 init_db()
