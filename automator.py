@@ -190,6 +190,85 @@ def process_image_text(text: str) -> str:
     )
 
 
+chat_history = []
+
+
+def chat(message: str) -> str:
+    chat_history.append({"role": "user", "content": message})
+    if len(chat_history) > 20:
+        chat_history.pop(0)
+        chat_history.pop(0)
+    try:
+        messages = [{"role": "system", "content": "Ты умный AI-ассистент. Отвечай на русском языке, подробно и по делу. Если вопрос требует кода — покажи его. Если творческий — будь креативным."}]
+        messages.extend(chat_history)
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=messages,
+            max_tokens=MAX_TOKENS,
+        )
+        reply = response.choices[0].message.content
+        chat_history.append({"role": "assistant", "content": reply})
+        return reply
+    except Exception as e:
+        return f"Ошибка: {e}"
+
+
+def generate_image_idea(prompt: str) -> str:
+    return automate(
+        f"Создай детальный промпт для генерации изображения нейросетью (Midjourney/DALL-E/Stable Diffusion) по описанию:\n\n{truncate(prompt)}",
+        "Ты эксперт по промпт-инжинирингу. Создай детальный промпт на английском языке с описанием стиля, освещения, композиции, деталей.",
+    )
+
+
+def business_idea(prompt: str) -> str:
+    return automate(
+        f"Предложи бизнес-идею и план по описанию:\n\n{truncate(prompt)}",
+        "Ты бизнес-консультант. Предложи конкретную бизнес-идею с анализом рынка, конкурентами, источниками дохода и первыми шагами.",
+    )
+
+
+def resume_improve(prompt: str) -> str:
+    return automate(
+        f"Улучши резюме или опиши опыт для резюме:\n\n{truncate(prompt)}",
+        "Ты HR-эксперт. Улучши формулировки, добавь достижения с цифрами, сделай профессиональным и привлекательным для работодателя.",
+    )
+
+
+def legal_review(prompt: str) -> str:
+    return automate(
+        f"Проанализируй юридический текст или договор:\n\n{truncate(prompt)}",
+        "Ты юрист. Проанализируй текст, выдели ключевые условия, риски, сроки и обязательства. Дай рекомендации.",
+    )
+
+
+def math_solve(prompt: str) -> str:
+    return automate(
+        f"Реши задачу покажи решение пошагово:\n\n{truncate(prompt)}",
+        "Ты математик. Реши задачу пошагово, покажи все вычисления и объясни логику.",
+    )
+
+
+def code_generate(prompt: str) -> str:
+    return automate(
+        f"Сгенерируй код по описанию:\n\n{truncate(prompt)}",
+        "Ты программист. Сгенерируй чистый, рабочий код с комментариями на русском языке. Укажи язык программирования.",
+    )
+
+
+def email_compose(prompt: str) -> str:
+    return automate(
+        f"Напиши письмо по описанию:\n\n{truncate(prompt)}",
+        "Ты бизнес-письменник. Напиши профессиональное, вежливое и структурированное письмо.",
+    )
+
+
+def social_post(prompt: str) -> str:
+    return automate(
+        f"Создай пост для соцсетей по описанию:\n\n{truncate(prompt)}",
+        "Ты SMM-специалист. Создай engaging пост с хэштегами, эмодзи и призывом к действию. Адаптируй под платформу.",
+    )
+
+
 if __name__ == "__main__":
     print("=== AI-Automator MVP ===\n")
 

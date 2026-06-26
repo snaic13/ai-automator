@@ -6,7 +6,9 @@ from automator import (
     process_document, customer_support, generate_report,
     summarize, translate, extract_emails, fetch_url, summarize_url,
     process_image_text, extract_pdf_text, extract_docx_text,
-    extract_xlsx_text, extract_csv_text, truncate
+    extract_xlsx_text, extract_csv_text, truncate,
+    chat, generate_image_idea, business_idea, resume_improve,
+    legal_review, math_solve, code_generate, email_compose, social_post
 )
 from auth import register, login, check_api_key, set_plan, ADMIN_KEY
 
@@ -251,17 +253,22 @@ textarea::placeholder{color:var(--ink-soft);opacity:0.5}
 
 <div class="main">
 <div class="tabs">
-<button class="tab active" onclick="setMode('document',this)">📄 Документы</button>
-<button class="tab" onclick="setMode('support',this)">💬 Поддержка</button>
+<button class="tab active" onclick="setMode('chat',this)">💬 Чат</button>
+<button class="tab" onclick="setMode('document',this)">📄 Документы</button>
+<button class="tab" onclick="setMode('support',this)">🎧 Поддержка</button>
 <button class="tab" onclick="setMode('report',this)">📊 Отчёты</button>
 <button class="tab" onclick="setMode('summarize',this)">📝 Резюме</button>
 <button class="tab" onclick="setMode('translate',this)">🌐 Перевод</button>
-<button class="tab" onclick="setMode('emails',this)">📧 Email</button>
-<button class="tab" onclick="setMode('url',this)">🔗 Ссылка URL</button>
 <button class="tab" onclick="setMode('code',this)">💻 Код</button>
 <button class="tab" onclick="setMode('sql',this)">🗄 SQL</button>
+<button class="tab" onclick="setMode('image-idea',this)">🎨 Промпт фото</button>
+<button class="tab" onclick="setMode('business',this)">💡 Бизнес</button>
+<button class="tab" onclick="setMode('resume',this)">📋 Резюме</button>
+<button class="tab" onclick="setMode('legal',this)">⚖️ Юрист</button>
+<button class="tab" onclick="setMode('math',this)">🧮 Математика</button>
+<button class="tab" onclick="setMode('email',this)">✉️ Письмо</button>
+<button class="tab" onclick="setMode('social',this)">📱 Соцсети</button>
 <button class="tab" onclick="setMode('seo',this)">🔍 SEO</button>
-<button class="tab" onclick="setMode('caption',this)">📱 Подпись</button>
 </div>
 
 <div class="input-card">
@@ -280,14 +287,14 @@ textarea::placeholder{color:var(--ink-soft);opacity:0.5}
 </div>
 
 <div class="features">
-<div class="feature" onclick="quick('Обработай документ и извлеки ключевую информацию: Счёт №45 от 25.06.2026, ООО Ромашка, сумма 150000 руб.')"><div class="icon">📄</div><div class="name">Обработка документов</div><div class="desc">Счета, договоры, акты</div></div>
-<div class="feature" onclick="quick('Как отменить подписку? Клиент спрашивает')"><div class="icon">💬</div><div class="name">Поддержка клиентов</div><div class="desc">Автоответы на вопросы</div></div>
-<div class="feature" onclick="quick('Сгенерируй отчёт по продажам: Январь 100k, Февраль 120k, Март 95k, Апрель 140k')"><div class="icon">📊</div><div class="name">Генерация отчётов</div><div class="desc">Аналитика и выводы</div></div>
-<div class="feature" onclick="quick('Переведи на английский: Автоматизация бизнес-процессов с помощью ИИ')"><div class="icon">🌐</div><div class="name">Перевод</div><div class="desc">На 50+ языков</div></div>
-<div class="feature" onclick="quick('https://habr.com/ru/articles/')"><div class="icon">🔗</div><div class="name">Чтение ссылок</div><div class="desc">Контент с URL</div></div>
-<div class="feature" onclick="quick('Объясни и улучши код:\ndef hello():\n    print(\"Hello\")')"><div class="icon">💻</div><div class="name">Код</div><div class="desc">Объяснение и рефакторинг</div></div>
-<div class="feature" onclick="quick('Сгенерируй SQL: получить всех пользователей из Москвы старше 25 лет')"><div class="icon">🗄</div><div class="name">SQL запросы</div><div class="desc">Генерация запросов</div></div>
-<div class="feature" onclick="quick('Сделай SEO-оптимизацию: AI автоматизация бизнес процессов для малого бизнеса')"><div class="icon">🔍</div><div class="name">SEO оптимизация</div><div class="desc">Мета-описание, ключевые слова</div></div>
+<div class="feature" onclick="setMode('chat',document.querySelector('.tab'))"><div class="icon">💬</div><div class="name">Чат с AI</div><div class="desc">Просто общайтесь</div></div>
+<div class="feature" onclick="setMode('document',document.querySelector('.tab'))"><div class="icon">📄</div><div class="name">Документы</div><div class="desc">Счета, договоры</div></div>
+<div class="feature" onclick="setMode('image-idea',document.querySelector('.tab'))"><div class="icon">🎨</div><div class="name">Промпт для фото</div><div class="desc">Для Midjourney/DALL-E</div></div>
+<div class="feature" onclick="setMode('business',document.querySelector('.tab'))"><div class="icon">💡</div><div class="name">Бизнес-идея</div><div class="desc">Анализ и план</div></div>
+<div class="feature" onclick="setMode('resume',document.querySelector('.tab'))"><div class="icon">📋</div><div class="name">Улучшение резюме</div><div class="desc">HR-экспертиза</div></div>
+<div class="feature" onclick="setMode('legal',document.querySelector('.tab'))"><div class="icon">⚖️</div><div class="name">Юрист</div><div class="desc">Анализ договоров</div></div>
+<div class="feature" onclick="setMode('math',document.querySelector('.tab'))"><div class="icon">🧮</div><div class="name">Математика</div><div class="desc">Пошаговое решение</div></div>
+<div class="feature" onclick="setMode('social',document.querySelector('.tab'))"><div class="icon">📱</div><div class="name">Соцсети</div><div class="desc">Посты и контент</div></div>
 </div>
 
 <div class="footer">AI-Automator &copy; 2026 &mdash; Автоматизация бизнес-процессов на базе AI</div>
@@ -298,7 +305,7 @@ const API_KEY=localStorage.getItem('api_key');
 if(!API_KEY)window.location.href='/';
 let mode='document',uploadedFile=null;
 document.getElementById('userEmail').textContent=localStorage.getItem('email')||'';
-const PH={document:'Вставьте текст документа...',support:'Введите вопрос клиента...',report:'Вставьте данные для отчёта...',summarize:'Вставьте длинный текст для резюмирования...',translate:'Вставьте текст для перевода...',emails:'Вставьте текст для извлечения email...',url:'Вставьте ссылку для чтения...',code:'Вставьте код для анализа...',sql:'Опишите задачу для SQL...',seo:'Вставьте текст для SEO-оптимизации...',caption:'Опишите фото для подписи...'};
+const PH={chat:'Напишите сообщение...',document:'Вставьте текст документа...',support:'Введите вопрос клиента...',report:'Вставьте данные для отчёта...',summarize:'Вставьте длинный текст для резюмирования...',translate:'Вставьте текст для перевода...',code:'Опишите задачу или вставьте код...',sql:'Опишите задачу для SQL...',seo:'Вставьте текст для SEO-оптимизации...','image-idea':'Опишите какое изображение хотите получить...',business:'Опишите вашу идею или нишу...',resume:'Вставьте текст резюме или опишите опыт...',legal:'Вставьте текст договора или вопрос юристу...',math:'Введите задачу...',email:'Опишите кому и о чём письмо...',social:'Опишите для какой платформы и о чём пост...'};
 
 function toggleTheme(){const d=document.documentElement,cur=d.getAttribute('data-theme'),next=cur==='dark'?'light':'dark';d.setAttribute('data-theme',next);localStorage.setItem('theme',next);document.getElementById('themeBtn').textContent=next==='dark'?'🌙':'☀️'}
 const saved=localStorage.getItem('theme');if(saved){document.documentElement.setAttribute('data-theme',saved);document.getElementById('themeBtn').textContent=saved==='dark'?'🌙':'☀️'}
@@ -412,6 +419,14 @@ def api_process():
         elif mode == "sql": result = summarize(f"Сгенерируй SQL-запрос по описанию:\n\n{text}")
         elif mode == "seo": result = summarize(f"Сделай SEO-оптимизацию текста, добавь мета-описание и ключевые слова:\n\n{text}")
         elif mode == "caption": result = summarize(f"Напиши engaging подпись для соцсетей:\n\n{text}")
+        elif mode == "chat": result = chat(text)
+        elif mode == "image-idea": result = generate_image_idea(text)
+        elif mode == "business": result = business_idea(text)
+        elif mode == "resume": result = resume_improve(text)
+        elif mode == "legal": result = legal_review(text)
+        elif mode == "math": result = math_solve(text)
+        elif mode == "email": result = email_compose(text)
+        elif mode == "social": result = social_post(text)
         else: return jsonify({"error": "Неизвестный режим"}), 400
         return jsonify({"result": result})
     except Exception as e:
