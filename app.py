@@ -353,22 +353,24 @@ APP_HTML = """
 
 @app.route("/")
 def auth_page():
-    if session.get("api_key"):
-        return redirect("/app")
     return render_template_string(AUTH_HTML)
 
 
 @app.route("/app")
 def app_page():
+    api_key = session.get("api_key")
+    if not api_key:
+        return redirect("/")
     return render_template_string(APP_HTML)
 
 
 @app.route("/logout")
 def logout_page():
+    session.clear()
     return """<!DOCTYPE html><html><head><meta charset="utf-8"><script>
     localStorage.removeItem('api_key');
     localStorage.removeItem('email');
-    window.location.replace('/');
+    window.location.href = '/';
     </script></head><body></body></html>"""
 
 
