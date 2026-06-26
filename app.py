@@ -360,6 +360,9 @@ def api_auth():
         result = register(email, password)
     elif action == "login":
         result = login(email, password)
+    elif action == "logout":
+        session.clear()
+        return jsonify({"success": True})
     else:
         return jsonify({"error": "Неизвестное действие"}), 400
 
@@ -367,6 +370,12 @@ def api_auth():
         session["api_key"] = result["api_key"]
 
     return jsonify(result)
+
+
+@app.route("/api/logout")
+def api_logout():
+    session.clear()
+    return redirect("/")
 
 
 @app.route("/api/usage")
