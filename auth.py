@@ -74,7 +74,7 @@ def login(email: str, password: str) -> dict:
     return {"success": True, "api_key": user["api_key"], "email": email}
 
 
-def check_api_key(api_key: str) -> dict:
+def check_api_key(api_key: str, count: bool = True) -> dict:
     conn = get_db()
     user = conn.execute("SELECT * FROM users WHERE api_key = ?", (api_key,)).fetchone()
     if not user:
@@ -96,18 +96,20 @@ def check_api_key(api_key: str) -> dict:
         conn.close()
         return {"valid": False, "error": "Лимит запросов исчерпан. Обновите план."}
 
-    conn.execute(
-        "UPDATE users SET requests_today = requests_today + 1 WHERE api_key = ?",
-        (api_key,),
-    )
-    conn.commit()
+    if count:
+        conn.execute(
+            "UPDATE users SET requests_today = requests_today + 1 WHERE api_key = ?",
+            (api_key,),
+        )
+        conn.commit()
+
     conn.close()
 
     return {
         "valid": True,
         "email": user["email"],
         "plan": user["plan"],
-        "remaining": user["requests_limit"] - user["requests_today"] - 1,
+        "remaining": user["requests_limit"] - user["requests_today"] - (1 if count else 0),
     }
 
 

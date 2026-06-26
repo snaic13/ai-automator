@@ -20,7 +20,21 @@ def login_required(f):
         api_key = session.get("api_key") or request.headers.get("X-API-Key")
         if not api_key:
             return jsonify({"error": "Требуется авторизация"}), 401
-        user = check_api_key(api_key)
+        user = check_api_key(api_key, count=False)
+        if not user["valid"]:
+            return jsonify({"error": user["error"]}), 403
+        request.user = user
+        return f(*args, **kwargs)
+    return decorated
+
+
+def login_required_count(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        api_key = session.get("api_key") or request.headers.get("X-API-Key")
+        if not api_key:
+            return jsonify({"error": "Требуется авторизация"}), 401
+        user = check_api_key(api_key, count=True)
         if not user["valid"]:
             return jsonify({"error": user["error"]}), 403
         request.user = user
@@ -203,7 +217,7 @@ APP_HTML = """
         </div>
         <div style="display:flex;align-items:center;gap:15px;">
             <span class="usage" id="usageInfo"></span>
-            <button onclick="logout()">Выйти</button>
+            <button onclick="window.location.replace('/logout')">Выйти</button>
         </div>
     </div>
 
@@ -329,7 +343,7 @@ APP_HTML = """
         function logout() {
             localStorage.removeItem('api_key');
             localStorage.removeItem('email');
-            window.location.href = '/';
+            window.location.replace('/');
         }
     </script>
 </body>
@@ -347,6 +361,15 @@ def auth_page():
 @app.route("/app")
 def app_page():
     return render_template_string(APP_HTML)
+
+
+@app.route("/logout")
+def logout_page():
+    return """<!DOCTYPE html><html><head><meta charset="utf-8"><script>
+    localStorage.removeItem('api_key');
+    localStorage.removeItem('email');
+    window.location.replace('/');
+    </script></head><body></body></html>"""
 
 
 @app.route("/api/auth", methods=["POST"])
@@ -402,7 +425,7 @@ def admin_set_plan():
 
 
 @app.route("/api/process", methods=["POST"])
-@login_required
+@login_required_count
 def api_process():
     data = request.json
     text = data.get("text", "")
