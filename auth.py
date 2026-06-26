@@ -1,37 +1,114 @@
 import os
-import uuid
-import sqlite3
 import hashlib
 import secrets
 from datetime import datetime, timedelta
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "users.db")
+DATABASE_URL = os.environ.get("DATABASE_URL", "")
 
+if DATABASE_URL:
+    import psycopg2
+    import psycopg2.extras
 
-def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    def get_db():
+        conn = psycopg2.connect(DATABASE_URL, sslmode="require")
+        return conn
 
+    def init_db():
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                api_key TEXT UNIQUE NOT NULL,
+                plan TEXT DEFAULT 'free',
+                requests_today INTEGER DEFAULT 0,
+                requests_limit INTEGER DEFAULT 10,
+                last_request_date TEXT,
+                paid_until TEXT,
+                created_at TEXT DEFAULT NOW()
+            )
+        """)
+        conn.commit()
+        cur.close()
+        conn.close()
 
-def init_db():
-    conn = get_db()
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            api_key TEXT UNIQUE NOT NULL,
-            plan TEXT DEFAULT 'free',
-            requests_today INTEGER DEFAULT 0,
-            requests_limit INTEGER DEFAULT 10,
-            last_request_date TEXT,
-            paid_until TEXT,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    conn.commit()
-    conn.close()
+    def db_execute(query, params=None):
+        conn = get_db()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(query, params)
+        result = cur.fetchall()
+        conn.commit()
+        cur.close()
+        conn.close()
+        return result
+
+    def db_execute_returning(query, params=None):
+        conn = get_db()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(query, params)
+        result = cur.fetchall()
+        conn.commit()
+        cur.close()
+        conn.close()
+        return result
+
+    def db_update(query, params=None):
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute(query, params)
+        conn.commit()
+        cur.close()
+        conn.close()
+
+else:
+    import sqlite3
+
+    DB_PATH = os.path.join(os.path.dirname(__file__), "users.db")
+
+    def get_db():
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        return conn
+
+    def init_db():
+        conn = get_db()
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                api_key TEXT UNIQUE NOT NULL,
+                plan TEXT DEFAULT 'free',
+                requests_today INTEGER DEFAULT 0,
+                requests_limit INTEGER DEFAULT 10,
+                last_request_date TEXT,
+                paid_until TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
+        conn.close()
+
+    def db_execute(query, params=None):
+        conn = get_db()
+        if params:
+            cur = conn.execute(query, params)
+        else:
+            cur = conn.execute(query)
+        rows = [dict(r) for r in cur.fetchall()]
+        conn.close()
+        return rows
+
+    def db_update(query, params=None):
+        conn = get_db()
+        if params:
+            conn.execute(query, params)
+        else:
+            conn.execute(query)
+        conn.commit()
+        conn.close()
 
 
 def hash_password(password: str) -> str:
@@ -50,60 +127,67 @@ def generate_api_key() -> str:
 
 
 def register(email: str, password: str) -> dict:
-    conn = get_db()
     try:
         api_key = generate_api_key()
-        conn.execute(
+        db_update(
+            "INSERT INTO users (email, password_hash, api_key) VALUES (%s, %s, %s)" if DATABASE_URL else
             "INSERT INTO users (email, password_hash, api_key) VALUES (?, ?, ?)",
             (email, hash_password(password), api_key),
         )
-        conn.commit()
         return {"success": True, "api_key": api_key, "email": email}
-    except sqlite3.IntegrityError:
+    except Exception:
         return {"success": False, "error": "Email уже зарегистрирован"}
-    finally:
-        conn.close()
 
 
 def login(email: str, password: str) -> dict:
-    conn = get_db()
-    user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-    conn.close()
-    if not user or not check_password(password, user["password_hash"]):
+    users = db_execute(
+        "SELECT * FROM users WHERE email = %s" if DATABASE_URL else
+        "SELECT * FROM users WHERE email = ?",
+        (email,),
+    )
+    if not users:
+        return {"success": False, "error": "Неверный email или пароль"}
+    user = users[0]
+    if not check_password(password, user["password_hash"]):
         return {"success": False, "error": "Неверный email или пароль"}
     return {"success": True, "api_key": user["api_key"], "email": email}
 
 
 def check_api_key(api_key: str, count: bool = True) -> dict:
-    conn = get_db()
-    user = conn.execute("SELECT * FROM users WHERE api_key = ?", (api_key,)).fetchone()
-    if not user:
-        conn.close()
+    users = db_execute(
+        "SELECT * FROM users WHERE api_key = %s" if DATABASE_URL else
+        "SELECT * FROM users WHERE api_key = ?",
+        (api_key,),
+    )
+    if not users:
         return {"valid": False, "error": "Неверный API ключ"}
 
+    user = users[0]
     today = datetime.now().strftime("%Y-%m-%d")
 
     if user["last_request_date"] != today:
-        conn.execute(
+        db_update(
+            "UPDATE users SET requests_today = 0, last_request_date = %s WHERE api_key = %s" if DATABASE_URL else
             "UPDATE users SET requests_today = 0, last_request_date = ? WHERE api_key = ?",
             (today, api_key),
         )
-        conn.commit()
 
-    user = conn.execute("SELECT * FROM users WHERE api_key = ?", (api_key,)).fetchone()
+    users = db_execute(
+        "SELECT * FROM users WHERE api_key = %s" if DATABASE_URL else
+        "SELECT * FROM users WHERE api_key = ?",
+        (api_key,),
+    )
+    user = users[0]
 
     if user["requests_today"] >= user["requests_limit"]:
-        conn.close()
         return {"valid": False, "error": "Лимит запросов исчерпан. Обновите план."}
 
     if count:
-        conn.execute(
+        db_update(
+            "UPDATE users SET requests_today = requests_today + 1 WHERE api_key = %s" if DATABASE_URL else
             "UPDATE users SET requests_today = requests_today + 1 WHERE api_key = ?",
             (api_key,),
         )
-        conn.commit()
-
-    conn.close()
 
     return {
         "valid": True,
@@ -114,18 +198,15 @@ def check_api_key(api_key: str, count: bool = True) -> dict:
 
 
 def set_plan(email: str, plan: str, days: int = 30):
-    conn = get_db()
     limits = {"free": 10, "starter": 100, "pro": 500, "enterprise": 9999}
     paid_until = (datetime.now() + timedelta(days=days)).strftime("%Y-%m-%d")
-    conn.execute(
+    db_update(
+        "UPDATE users SET plan = %s, requests_limit = %s, paid_until = %s WHERE email = %s" if DATABASE_URL else
         "UPDATE users SET plan = ?, requests_limit = ?, paid_until = ? WHERE email = ?",
         (plan, limits.get(plan, 10), paid_until, email),
     )
-    conn.commit()
-    conn.close()
 
 
 ADMIN_KEY = "admin_snaic13_secret_2026"
-
 
 init_db()
