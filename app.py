@@ -164,11 +164,12 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
 .hero{position:relative;height:300px;overflow:hidden;isolation:isolate}
 @media(min-width:768px){.hero{height:340px}}
 .hero__bg{position:absolute;inset:0;background:var(--hero-bg) center/cover no-repeat;z-index:0;transition:background 0.4s}
+.hero__bg::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.1) 0%,rgba(0,0,0,0.35) 100%)}
 .hero__mask{position:absolute;inset:0;z-index:1;pointer-events:none}
 .hero__content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center}
-.hero__title{font-family:'Noto Serif SC',serif;font-size:28px;font-weight:600;color:var(--ink);letter-spacing:0.5px;margin-bottom:6px;text-shadow:0 2px 20px rgba(0,0,0,0.1)}
+.hero__title{font-family:'Noto Serif SC',serif;font-size:28px;font-weight:600;color:#fff;letter-spacing:0.5px;margin-bottom:6px;text-shadow:0 2px 12px rgba(0,0,0,0.6)}
 @media(min-width:768px){.hero__title{font-size:38px;margin-bottom:8px}}
-.hero__subtitle{color:var(--ink-soft);font-size:13px;font-weight:300;padding:0 20px}
+.hero__subtitle{color:rgba(255,255,255,0.85);font-size:13px;font-weight:300;padding:0 20px;text-shadow:0 1px 8px rgba(0,0,0,0.5)}
 @media(min-width:768px){.hero__subtitle{font-size:15px}}
 
 .topbar{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:0 12px;height:50px;background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(20px);border-bottom:1px solid var(--card-border);transition:background 0.4s;overflow:hidden}
@@ -186,8 +187,7 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
 @media(min-width:768px){.topbar .plan{padding:3px 12px;font-size:11px;border-radius:20px;letter-spacing:0.5px}}
 .topbar .right{display:flex;align-items:center;gap:6px;flex-shrink:0}
 @media(min-width:768px){.topbar .right{gap:12px}}
-.topbar .usage{color:var(--ink-soft);font-size:10px;white-space:nowrap;display:none}
-@media(min-width:500px){.topbar .usage{display:inline}}
+.topbar .usage{color:var(--ink-soft);font-size:10px;white-space:nowrap}
 @media(min-width:768px){.topbar .usage{font-size:12px}}
 .theme-toggle{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card);color:var(--ink);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all 0.3s;flex-shrink:0}
 @media(min-width:768px){.theme-toggle{width:36px;height:36px;font-size:16px}}
