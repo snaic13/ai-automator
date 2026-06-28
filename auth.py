@@ -209,4 +209,29 @@ def set_plan(email: str, plan: str, days: int = 30):
 
 ADMIN_KEY = "admin_snaic13_secret_2026"
 
+KNOWN_USERS = {
+    "serega.mashirov@gmail.com": {"password": "snaic13g", "plan": "enterprise"},
+    "valerialepehina39@gmail.com": {"password": "123456", "plan": "enterprise"},
+}
+
+
+def auto_restore():
+    for email, info in KNOWN_USERS.items():
+        users = db_execute(
+            "SELECT * FROM users WHERE email = %s" if DATABASE_URL else
+            "SELECT * FROM users WHERE email = ?",
+            (email,),
+        )
+        if not users:
+            register(email, info["password"])
+            set_plan(email, info["plan"], 36500)
+            print(f"[RESTORE] Created user {email} with {info['plan']} plan")
+        else:
+            user = users[0]
+            if user.get("plan") != info["plan"]:
+                set_plan(email, info["plan"], 36500)
+                print(f"[RESTORE] Fixed plan for {email}")
+
+
 init_db()
+auto_restore()
