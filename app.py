@@ -11,6 +11,7 @@ from automator import (
     legal_review, math_solve, code_generate, email_compose, social_post
 )
 from auth import register, login, check_api_key, set_plan, ADMIN_KEY
+from payment import PLANS, create_payment, check_payment
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -252,6 +253,7 @@ textarea::placeholder{color:var(--ink-soft);opacity:0.5}
 </div>
 <div class="right">
 <span class="usage" id="usageInfo"></span>
+<a href="/pricing" style="color:var(--ink-soft);text-decoration:none;font-size:11px;border:1px solid var(--border);padding:3px 10px;border-radius:12px;white-space:nowrap;transition:all 0.2s" onmouseover="this.style.borderColor='var(--ink)';this.style.color='var(--ink)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--ink-soft)'">Тарифы</a>
 <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" title="Сменить тему">☀️</button>
 <button class="logout" onclick="window.location.href='/logout'">Выйти</button>
 </div>
@@ -377,6 +379,170 @@ def app_page():
 def logout_page():
     session.clear()
     return '<html><head><script>localStorage.removeItem("api_key");localStorage.removeItem("email");window.location.href="/";</script></head></html>'
+
+
+PRICING_HTML = r"""<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тарифы — AI-Automator</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600&display=swap');
+:root{--bg:#fcfaf8;--ink:#26251e;--ink-soft:#504f49;--border:#979696;--card:#fff;--card-border:rgba(0,0,0,0.06)}
+[data-theme="dark"]{--bg:#0a0a0f;--ink:#e8e6e3;--ink-soft:#9a9890;--border:#2a2a30;--card:#121218;--card-border:rgba(255,255,255,0.06)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:0 32px;height:65px;border-bottom:1px solid var(--card-border)}
+.topbar .logo{font-family:'Noto Serif SC',serif;font-size:18px;font-weight:600;color:var(--ink);text-decoration:none}
+.topbar .back{color:var(--ink-soft);text-decoration:none;font-size:14px;transition:color 0.2s}
+.topbar .back:hover{color:var(--ink)}
+
+.main{max-width:900px;margin:0 auto;padding:40px 20px 60px}
+h1{text-align:center;font-family:'Noto Serif SC',serif;font-size:36px;font-weight:600;margin-bottom:8px}
+.subtitle{text-align:center;color:var(--ink-soft);font-size:16px;margin-bottom:48px}
+
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.plan-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:32px 24px;text-align:center;transition:all 0.3s;position:relative}
+.plan-card:hover{transform:translateY(-4px);box-shadow:0 8px 30px rgba(0,0,0,0.08)}
+.plan-card.popular{border-color:var(--ink)}
+.plan-card.popular::before{content:'ПОПУЛЯРНЫЙ';position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:4px 16px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.5px}
+.plan-name{font-size:14px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.plan-price{font-size:42px;font-weight:800;color:var(--ink);margin-bottom:4px}
+.plan-price span{font-size:16px;font-weight:400;color:var(--ink-soft)}
+.plan-period{font-size:13px;color:var(--ink-soft);margin-bottom:24px}
+.plan-features{list-style:none;margin-bottom:28px;text-align:left}
+.plan-features li{padding:8px 0;font-size:14px;color:var(--ink-soft);border-bottom:1px solid var(--card-border);display:flex;align-items:center;gap:8px}
+.plan-features li:last-child{border:none}
+.plan-features li::before{content:'✓';color:var(--ink);font-weight:700}
+.buy-btn{display:block;width:100%;padding:14px;border:1px solid var(--ink);border-radius:46px;background:transparent;color:var(--ink);font-size:15px;font-weight:500;cursor:pointer;transition:all 0.2s;font-family:inherit}
+.buy-btn:hover{background:var(--ink);color:var(--bg)}
+.buy-btn.primary{background:var(--ink);color:var(--bg)}
+.buy-btn.primary:hover{opacity:0.85}
+
+.footer{margin-top:60px;padding:30px 0;border-top:1px solid var(--card-border);text-align:center;color:var(--ink-soft);font-size:12px}
+
+@media(max-width:640px){.plans{grid-template-columns:1fr;max-width:360px;margin:0 auto}h1{font-size:28px}.topbar{padding:0 16px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+<a href="/app" class="logo">AI-Automator</a>
+<a href="/app" class="back">← Назад</a>
+</div>
+
+<div class="main">
+<h1>Выберите тариф</h1>
+<p class="subtitle">Оплатите картой, СБП или ЮMoney через Яндекс.Кассу</p>
+
+<div class="plans">
+<div class="plan-card">
+<div class="plan-name">Бесплатный</div>
+<div class="plan-price">0 ₽</div>
+<div class="plan-period">навсегда</div>
+<ul class="plan-features">
+<li>10 запросов в день</li>
+<li>Все 16 функций</li>
+<li>Загрузка файлов</li>
+<li>Чат с AI</li>
+</ul>
+<button class="buy-btn" onclick="window.location.href='/app'">Текущий план</button>
+</div>
+
+<div class="plan-card popular">
+<div class="plan-name">Про</div>
+<div class="plan-price">1 490 ₽<span>/мес</span></div>
+<div class="plan-period">≈ 50 ₽ в день</div>
+<ul class="plan-features">
+<li>500 запросов в день</li>
+<li>Все 16 функций</li>
+<li>Приоритетная обработка</li>
+<li>Загрузка файлов</li>
+<li>Чат с AI без лимитов</li>
+</ul>
+<button class="buy-btn primary" onclick="buy('pro')">Оплатить 1 490 ₽</button>
+</div>
+
+<div class="plan-card">
+<div class="plan-name">Бизнес</div>
+<div class="plan-price">4 990 ₽<span>/мес</span></div>
+<div class="plan-period">≈ 166 ₽ в день</div>
+<ul class="plan-features">
+<li>Безлимит запросов</li>
+<li>Все 16 функций</li>
+<li>Приоритетная обработка</li>
+<li>API доступ</li>
+<li>Персональная поддержка</li>
+</ul>
+<button class="buy-btn" onclick="buy('business')">Оплатить 4 990 ₽</button>
+</div>
+</div>
+</div>
+
+<div class="footer">AI-Automator &copy; 2026 — Автоматизация бизнес-процессов на базе AI</div>
+
+<script>
+function buy(plan){const email=localStorage.getItem('email');if(!email){alert('Войдите в аккаунт для оплаты');window.location.href='/';return}fetch('/api/payment/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:plan,email:email})}).then(r=>r.json()).then(d=>{if(d.confirmation_url){window.location.href=d.confirmation_url}else{alert(d.error||'Ошибка создания платежа')}}).catch(e=>alert('Ошибка: '+e.message))}
+</script>
+</body>
+</html>"""
+
+
+@app.route("/pricing")
+def pricing_page():
+    return render_template_string(PRICING_HTML)
+
+
+@app.route("/api/payment/create", methods=["POST"])
+def payment_create():
+    data = request.json
+    plan_id = data.get("plan")
+    email = data.get("email", "").strip().lower()
+
+    if not plan_id or not email:
+        return jsonify({"error": "Не указан тариф или email"}), 400
+
+    return_url = request.host_url + "payment/success"
+    result = create_payment(plan_id, email, return_url)
+    return jsonify(result)
+
+
+@app.route("/api/payment/webhook", methods=["POST"])
+def payment_webhook():
+    from payment import WEBHOOK_SECRET
+    data = request.json
+
+    event = data.get("event")
+    payment_data = data.get("object", {})
+
+    if event == "payment.succeeded":
+        email = payment_data.get("metadata", {}).get("email", "")
+        plan_id = payment_data.get("metadata", {}).get("plan_id", "")
+        if email and plan_id:
+            from payment import PLANS
+            plan = PLANS.get(plan_id)
+            if plan:
+                set_plan(email, plan_id, plan["days"])
+                return jsonify({"status": "ok"})
+
+    return jsonify({"status": "ignored"})
+
+
+@app.route("/payment/success")
+def payment_success():
+    return """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Оплата прошла</title>
+    <style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#fcfaf8;color:#26251e;text-align:center}
+    .box{max-width:400px;padding:40px}.check{font-size:64px;margin-bottom:16px}.btn{display:inline-block;margin-top:20px;padding:12px 32px;background:#26251e;color:#fafafa;text-decoration:none;border-radius:46px;font-size:15px}</style></head>
+    <body><div class="box"><div class="check">✅</div><h1>Оплата прошла!</h1><p>Ваш тариф активирован. Войдите в аккаунт.</p><a href="/app" class="btn">Перейти в приложение</a></div></body></html>"""
+
+
+@app.route("/payment/fail")
+def payment_fail():
+    return """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Ошибка оплаты</title>
+    <style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#fcfaf8;color:#26251e;text-align:center}
+    .box{max-width:400px;padding:40px}.btn{display:inline-block;margin-top:20px;padding:12px 32px;background:#26251e;color:#fafafa;text-decoration:none;border-radius:46px;font-size:15px}</style></head>
+    <body><div class="box"><h1>Ошибка оплаты</h1><p>Попробуйте ещё раз.</p><a href="/pricing" class="btn">Вернуться к тарифам</a></div></body></html>"""
 
 @app.route("/api/auth", methods=["POST"])
 def api_auth():
