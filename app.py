@@ -395,7 +395,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink)}
 .container{max-width:800px;margin:0 auto;padding:40px 20px}
 h1{font-family:'Noto Serif SC',serif;font-size:28px;margin-bottom:24px}
 h2{font-size:18px;margin:24px 0 12px}
-p,line-height:1.8;font-size:14px;color:var(--ink-soft);margin-bottom:12px}
+p{line-height:1.8;font-size:14px;color:var(--ink-soft);margin-bottom:12px}
 table{width:100%;border-collapse:collapse;margin:16px 0}
 td{padding:10px 16px;border-bottom:1px solid var(--card-border);font-size:14px}
 td:first-child{color:var(--ink-soft);width:200px}
@@ -409,9 +409,8 @@ td:first-child{color:var(--ink-soft);width:200px}
 
 <h2>1. Исполнитель</h2>
 <table>
-<tr><td>Наименование</td><td>Индивидуальный предприниматель Маширов Сергей Дмитриевич</td></tr>
-<tr><td>ИНН</td><td>Укажите ваш ИНН</td></tr>
-<tr><td>ОГРНИП</td><td>Укажите ваш ОГРНИП</td></tr>
+<tr><td>Наименование</td><td>ИП Маширов Сергей Дмитриевич</td></tr>
+<tr><td>ИНН</td><td>526320301575</td></tr>
 <tr><td>Юридический адрес</td><td>г. Москва</td></tr>
 <tr><td>Телефон</td><td>+7 (930) 719-80-05</td></tr>
 <tr><td>Email</td><td>serega.mashirov@gmail.com</td></tr>
@@ -427,7 +426,7 @@ td:first-child{color:var(--ink-soft);width:200px}
 </table>
 
 <h2>4. Порядок оплаты</h2>
-<p>Оплата производится онлайн через платёжную систему ЮKassa. После успешной оплаты доступ к сервису предоставляется автоматически на срок действия подписки.</p>
+<p>Оплата производится онлайн через платёжную систему ЮKassa (ЮKassa). После успешной оплаты доступ к сервису предоставляется автоматически на срок действия подписки.</p>
 
 <h2>5. Возврат</h2>
 <p>Возврат денежных средств возможен в течение 14 дней с момента оплаты при обращении по адресу serega.mashirov@gmail.com.</p>
@@ -539,7 +538,7 @@ h1{text-align:center;font-family:'Noto Serif SC',serif;font-size:36px;font-weigh
 </div>
 </div>
 
-<div class="footer">AI-Automator &copy; 2026 — <a href="/legal" style="color:inherit;text-decoration:underline">Реквизиты и оферта</a></div>
+<div class="footer">AI-Automator &copy; 2026 &middot; ИНН 526320301575 &middot; <a href="/legal" style="color:inherit;text-decoration:underline">Реквизиты и оферта</a></div>
 
 <script>
 function buy(plan){const email=localStorage.getItem('email');if(!email){alert('Войдите в аккаунт для оплаты');window.location.href='/';return}fetch('/api/payment/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:plan,email:email})}).then(r=>r.json()).then(d=>{if(d.confirmation_url){window.location.href=d.confirmation_url}else{alert(d.error||'Ошибка создания платежа')}}).catch(e=>alert('Ошибка: '+e.message))}
