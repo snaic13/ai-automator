@@ -1,80 +1,47 @@
 import os
-import uuid
-from yookassa import Configuration, Payment
+import hashlib
+import urllib.parse
+from payment import PLANS
 
-YOOKASSA_SHOP_ID = os.environ.get("YOOKASSA_SHOP_ID", "")
-YOOKASSA_SECRET_KEY = os.environ.get("YOOKASSA_SECRET_KEY", "")
+ROBOKASSA_SHOP_ID = os.environ.get("ROBOKASSA_SHOP_ID", "")
+ROBOKASSA_PASSWORD1 = os.environ.get("ROBOKASSA_PASSWORD1", "")
+ROBOKASSA_PASSWORD2 = os.environ.get("ROBOKASSA_PASSWORD2", "")
 
-if YOOKASSA_SHOP_ID and YOOKASSA_SECRET_KEY:
-    Configuration.account_id = YOOKASSA_SHOP_ID
-    Configuration.secret_key = YOOKASSA_SECRET_KEY
-
-PLANS = {
-    "starter": {
-        "name": "Стартовый",
-        "price": 490,
-        "currency": "RUB",
-        "requests_limit": 100,
-        "days": 30,
-    },
-    "pro": {
-        "name": "Про",
-        "price": 1490,
-        "currency": "RUB",
-        "requests_limit": 500,
-        "days": 30,
-    },
-    "business": {
-        "name": "Бизнес",
-        "price": 4990,
-        "currency": "RUB",
-        "requests_limit": 9999,
-        "days": 30,
-    },
-}
+ROBOKASSA_TEST = os.environ.get("ROBOKASSA_TEST", "0") == "1"
 
 
-def create_payment(plan_id: str, email: str, return_url: str) -> dict:
-    plan = PLANS.get(plan_id)
-    if not plan:
-        return {"error": "Неизвестный тариф"}
+def robokassa_init_url(inv_id: str, amount: float, description: str, email: str, success_url: str, fail_url: str) -> str:
+    if not ROBOKASSA_SHOP_ID or not ROBOKASSA_PASSWORD1:
+        return ""
 
-    if not YOOKASSA_SHOP_ID or not YOOKASSA_SECRET_KEY:
-        return {"error": "YooKassa не настроена. Обратитесь к администратору."}
+    out_sum = f"{amount:.2f}"
+    crc_str = f"{ROBOKASSA_SHOP_ID}:{out_sum}:{inv_id}:{ROBOKASSA_PASSWORD1}"
 
-    idempotence_key = str(uuid.uuid4())
+    if ROBOKASSA_TEST:
+        crc_str += ":test"
 
-    payment = Payment.create({
-        "amount": {
-            "value": str(plan["price"]),
-            "currency": plan["currency"],
-        },
-        "confirmation": {
-            "type": "redirect",
-            "return_url": return_url,
-        },
-        "capture": True,
-        "description": f"AI-Automator: {plan['name']} ({plan['requests_limit']} запросов/день)",
-        "metadata": {
-            "email": email,
-            "plan_id": plan_id,
-        },
-    }, idempotence_key)
+    signature = hashlib.md5(crc_str.encode()).hexdigest()
 
-    return {
-        "payment_id": payment.id,
-        "confirmation_url": payment.confirmation.confirmation_url,
-        "amount": plan["price"],
-        "plan_name": plan["name"],
+    params = {
+        "OutSum": out_sum,
+        "InvId": inv_id,
+        "Desc": description,
+        "Email": email,
+        "SignatureValue": signature,
+        "Shp_Email": email,
+        "Shp_plan": "",
     }
 
+    if ROBOKASSA_TEST:
+        params["IsTest"] = "1"
 
-def check_payment(payment_id: str) -> dict:
-    payment = Payment.find_one(payment_id)
-    return {
-        "status": payment.status,
-        "paid": payment.paid,
-    }
+    return "https://auth.robokassa.ru/Merchant/Payment.aspx?" + urllib.parse.urlencode(params)
 
 
-WEBHOOK_SECRET = os.environ.get("YOOKASSA_WEBHOOK_SECRET", "")
+def robokassa_verify(inv_id: str, out_sum: str, signature_value: str) -> bool:
+    if not ROBOKASSA_PASSWORD2:
+        return False
+
+    crc_str = f"{ROBOKASSA_SHOP_ID}:{out_sum}:{inv_id}:{ROBOKASSA_PASSWORD2}"
+    expected = hashlib.md5(crc_str.encode()).hexdigest()
+    return signature_value.lower() == expected.lower()

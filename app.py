@@ -11,7 +11,8 @@ from automator import (
     legal_review, math_solve, code_generate, email_compose, social_post
 )
 from auth import register, login, check_api_key, set_plan, ADMIN_KEY
-from payment import PLANS, create_payment, check_payment
+from payment import PLANS
+from payment import robokassa_init_url, robokassa_verify
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -566,33 +567,49 @@ def payment_create():
     if not plan_id or not email:
         return jsonify({"error": "Не указан тариф или email"}), 400
 
-    return_url = request.host_url + "payment/success"
-    result = create_payment(plan_id, email, return_url)
-    return jsonify(result)
+    plan = PLANS.get(plan_id)
+    if not plan:
+        return jsonify({"error": "Неизвестный тариф"}), 400
+
+    import time
+    inv_id = str(int(time.time()))
+    success_url = request.host_url + "payment/success"
+    fail_url = request.host_url + "payment/fail"
+
+    url = robokassa_init_url(
+        inv_id=inv_id,
+        amount=plan["price"],
+        description=f"AI-Automator: {plan['name']}",
+        email=email,
+        success_url=success_url,
+        fail_url=fail_url,
+    )
+
+    if not url:
+        return jsonify({"error": "Платёжная система не настроена. Обратитесь к администратору."}), 500
+
+    return jsonify({"confirmation_url": url})
 
 
-@app.route("/api/payment/webhook", methods=["POST"])
-def payment_webhook():
-    from payment import WEBHOOK_SECRET
-    data = request.json
+@app.route("/api/payment/result", methods=["POST"])
+def payment_result():
+    inv_id = request.form.get("InvId", "")
+    out_sum = request.form.get("OutSum", "")
+    signature = request.form.get("SignatureValue", "")
 
-    event = data.get("event")
-    payment_data = data.get("object", {})
-
-    if event == "payment.succeeded":
-        email = payment_data.get("metadata", {}).get("email", "")
-        plan_id = payment_data.get("metadata", {}).get("plan_id", "")
-        if email and plan_id:
-            from payment import PLANS
+    if robokassa_verify(inv_id, out_sum, signature):
+        email = request.form.get("Shp_Email", "")
+        plan_id = request.form.get("Shp_plan", "")
+        if email:
             plan = PLANS.get(plan_id)
             if plan:
                 set_plan(email, plan_id, plan["days"])
-                return jsonify({"status": "ok"})
+        return "OK", 200
 
-    return jsonify({"status": "ignored"})
+    return "INVALID SIGNATURE", 400
 
 
-@app.route("/payment/success")
+@app.route("/api/payment/success", methods=["GET", "POST"])
 def payment_success():
     return """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Оплата прошла</title>
     <style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#fcfaf8;color:#26251e;text-align:center}
@@ -600,7 +617,7 @@ def payment_success():
     <body><div class="box"><div class="check">✅</div><h1>Оплата прошла!</h1><p>Ваш тариф активирован. Войдите в аккаунт.</p><a href="/app" class="btn">Перейти в приложение</a></div></body></html>"""
 
 
-@app.route("/payment/fail")
+@app.route("/api/payment/fail")
 def payment_fail():
     return """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Ошибка оплаты</title>
     <style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#fcfaf8;color:#26251e;text-align:center}
