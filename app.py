@@ -115,6 +115,7 @@ input::placeholder{color:#aaa}
 <div class="feat"><span>📊</span>Отчёты</div>
 <div class="feat"><span>🌐</span>Перевод</div>
 </div>
+<div style="text-align:center;margin-top:24px;font-size:11px;color:#999">ИНН: 526320301575 &middot; ИП Маширов С.Д. &middot; <a href="/legal" style="color:#999;text-decoration:underline">Публичная оферта</a></div>
 </div>
 </div>
 </section>
