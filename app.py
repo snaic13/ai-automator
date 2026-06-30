@@ -444,6 +444,7 @@ td:first-child{color:var(--ink-soft);width:200px}
 </html>"""
 
 PRICING_HTML = r"""<!DOCTYPE html>
+<!-- v2 -->
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
