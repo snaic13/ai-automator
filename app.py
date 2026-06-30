@@ -315,7 +315,7 @@ textarea::placeholder{color:var(--ink-soft);opacity:0.5}
 <div class="feature" onclick="setMode('social',document.querySelector('.tab'))"><div class="icon">📱</div><div class="name">Соцсети</div><div class="desc">Посты и контент</div></div>
 </div>
 
-<div class="footer">AI-Automator &copy; 2026 &mdash; Автоматизация бизнес-процессов на базе AI</div>
+<div class="footer">AI-Automator &copy; 2026 &middot; ИНН: 526320301575 &middot; ИП Маширов С.Д. &middot; <a href="/legal" style="color:inherit;text-decoration:underline">Публичная оферта</a></div>
 </div>
 
 <script>
@@ -539,7 +539,7 @@ h1{text-align:center;font-family:'Noto Serif SC',serif;font-size:36px;font-weigh
 </div>
 </div>
 
-<div class="footer">AI-Automator &copy; 2026 &middot; ИНН 526320301575 &middot; <a href="/legal" style="color:inherit;text-decoration:underline">Реквизиты и оферта</a></div>
+<div class="footer">AI-Automator &copy; 2026 &middot; ИНН: 526320301575 &middot; ИП Маширов С.Д. &middot; <a href="/legal" style="color:inherit;text-decoration:underline">Публичная оферта</a></div>
 
 <script>
 function buy(plan){const email=localStorage.getItem('email');if(!email){alert('Войдите в аккаунт для оплаты');window.location.href='/';return}fetch('/api/payment/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:plan,email:email})}).then(r=>r.json()).then(d=>{if(d.confirmation_url){window.location.href=d.confirmation_url}else{alert(d.error||'Ошибка создания платежа')}}).catch(e=>alert('Ошибка: '+e.message))}
