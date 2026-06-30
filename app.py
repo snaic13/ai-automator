@@ -116,9 +116,11 @@ input::placeholder{color:#aaa}
 <div class="feat"><span>🌐</span>Перевод</div>
 </div>
 </div>
-<div style="text-align:center;padding:16px;font-size:11px;color:rgba(255,255,255,0.5)">ИНН: 526320301575 &middot; ИП Маширов С.Д. &middot; <a href="/legal" style="color:rgba(255,255,255,0.5);text-decoration:underline">Публичная оферта</a> &middot; <a href="/pricing" style="color:rgba(255,255,255,0.5);text-decoration:underline">Тарифы</a></div>
+</div>
+</div>
 </div>
 </section>
+<div style="text-align:center;padding:16px;font-size:11px;color:#999">ИНН: 526320301575 &middot; ИП Маширов С.Д. &middot; <a href="/legal" style="color:#999;text-decoration:underline">Публичная оферта</a> &middot; <a href="/pricing" style="color:#999;text-decoration:underline">Тарифы</a></div>
 
 <script>
 function switchTab(t){document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));event.target.classList.add('active');document.getElementById('loginForm').style.display=t==='login'?'block':'none';document.getElementById('registerForm').style.display=t==='register'?'block':'none';document.getElementById('error').style.display='none'}
