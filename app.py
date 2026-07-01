@@ -53,9 +53,9 @@ AUTH_HTML = r"""<!DOCTYPE html>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600&display=swap');
 :root{--bg:#fcfaf8;--ink:#26251e;--ink-soft:#504f49;--border:#979696;--chip:#f3f0ef;--accent:#667eea;--accent2:#a855f7}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100vh;display:flex;flex-direction:column}
 
-.hero{position:relative;height:100vh;overflow:hidden;isolation:isolate;display:flex;flex-direction:column}
+.hero{position:relative;flex:1;overflow:hidden;isolation:isolate;display:flex;flex-direction:column}
 .hero__bg{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=85') center/cover no-repeat;z-index:0}
 .hero__mask{position:absolute;inset:0;z-index:1;pointer-events:none}
 
