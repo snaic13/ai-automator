@@ -53,13 +53,13 @@ AUTH_HTML = r"""<!DOCTYPE html>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600&display=swap');
 :root{--bg:#fcfaf8;--ink:#26251e;--ink-soft:#504f49;--border:#979696;--chip:#f3f0ef;--accent:#667eea;--accent2:#a855f7}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 
-.hero{position:relative;height:100vh;overflow:hidden;isolation:isolate}
+.hero{position:relative;height:100vh;overflow:hidden;isolation:isolate;display:flex;flex-direction:column}
 .hero__bg{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=85') center/cover no-repeat;z-index:0}
 .hero__mask{position:absolute;inset:0;z-index:1;pointer-events:none}
 
-.hero__content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:0 20px;text-align:center}
+.hero__content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:0 20px;text-align:center}
 .hero__title{font-family:'Noto Serif SC','Georgia',serif;font-size:56px;font-weight:600;color:var(--ink);letter-spacing:1px;margin-bottom:16px}
 .hero__subtitle{font-family:'Inter',sans-serif;font-size:18px;color:var(--ink-soft);font-weight:300;line-height:1.6;max-width:600px;margin-bottom:40px}
 
@@ -120,7 +120,7 @@ input::placeholder{color:#aaa}
 </div>
 </div>
 </section>
-<div style="text-align:center;padding:16px;font-size:11px;color:#999">ИНН: 526320301575 &middot; Самозанятый Маширов С.Д. &middot; <a href="/legal" style="color:#999;text-decoration:underline">Публичная оферта</a> &middot; <a href="/pricing" style="color:#999;text-decoration:underline">Тарифы</a></div>
+<div style="text-align:center;padding:12px;font-size:11px;color:#666;background:#fff;border-top:1px solid #eee">ИНН: 526320301575 &middot; Самозанятый Маширов С.Д. &middot; <a href="/legal" style="color:#666;text-decoration:underline">Публичная оферта</a> &middot; <a href="/pricing" style="color:#666;text-decoration:underline">Тарифы</a></div>
 
 <script>
 function switchTab(t){document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));event.target.classList.add('active');document.getElementById('loginForm').style.display=t==='login'?'block':'none';document.getElementById('registerForm').style.display=t==='register'?'block':'none';document.getElementById('error').style.display='none'}
