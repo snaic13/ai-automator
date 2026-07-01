@@ -120,7 +120,7 @@ input::placeholder{color:#aaa}
 </div>
 </div>
 </section>
-<div style="text-align:center;padding:16px;font-size:11px;color:#999">ИНН: 526320301575 &middot; ИП Маширов С.Д. &middot; <a href="/legal" style="color:#999;text-decoration:underline">Публичная оферта</a> &middot; <a href="/pricing" style="color:#999;text-decoration:underline">Тарифы</a></div>
+<div style="text-align:center;padding:16px;font-size:11px;color:#999">ИНН: 526320301575 &middot; Самозанятый Маширов С.Д. &middot; <a href="/legal" style="color:#999;text-decoration:underline">Публичная оферта</a> &middot; <a href="/pricing" style="color:#999;text-decoration:underline">Тарифы</a></div>
 
 <script>
 function switchTab(t){document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));event.target.classList.add('active');document.getElementById('loginForm').style.display=t==='login'?'block':'none';document.getElementById('registerForm').style.display=t==='register'?'block':'none';document.getElementById('error').style.display='none'}
@@ -318,7 +318,7 @@ textarea::placeholder{color:var(--ink-soft);opacity:0.5}
 <div class="feature" onclick="setMode('social',document.querySelector('.tab'))"><div class="icon">📱</div><div class="name">Соцсети</div><div class="desc">Посты и контент</div></div>
 </div>
 
-<div class="footer">AI-Automator &copy; 2026 &middot; ИНН: 526320301575 &middot; ИП Маширов С.Д. &middot; <a href="/legal" style="color:inherit;text-decoration:underline">Публичная оферта</a></div>
+<div class="footer">AI-Automator &copy; 2026 &middot; ИНН: 526320301575 &middot; Самозанятый Маширов С.Д. &middot; <a href="/legal" style="color:inherit;text-decoration:underline">Публичная оферта</a></div>
 </div>
 
 <script>
@@ -390,7 +390,7 @@ LEGAL_HTML = r"""<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Реквизиты — AI-Automator</title>
+<title>Реквизиты и оферта — AI-Automator</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600&display=swap');
 :root{--bg:#fcfaf8;--ink:#26251e;--ink-soft:#504f49;--border:#979696;--card:#fff;--card-border:rgba(0,0,0,0.06)}
@@ -398,45 +398,98 @@ LEGAL_HTML = r"""<!DOCTYPE html>
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink)}
 .container{max-width:800px;margin:0 auto;padding:40px 20px}
 h1{font-family:'Noto Serif SC',serif;font-size:28px;margin-bottom:24px}
-h2{font-size:18px;margin:24px 0 12px}
-p{line-height:1.8;font-size:14px;color:var(--ink-soft);margin-bottom:12px}
+h2{font-size:18px;margin:28px 0 12px;font-weight:600}
+p,li{line-height:1.8;font-size:14px;color:var(--ink-soft);margin-bottom:12px}
 table{width:100%;border-collapse:collapse;margin:16px 0}
 td{padding:10px 16px;border-bottom:1px solid var(--card-border);font-size:14px}
-td:first-child{color:var(--ink-soft);width:200px}
+td:first-child{color:var(--ink-soft);width:220px}
+ol,ul{padding-left:20px;margin:8px 0}
+li{margin-bottom:8px}
 .back{display:inline-block;margin-top:24px;color:var(--ink-soft);text-decoration:none;font-size:14px}
 .back:hover{color:var(--ink)}
+.highlight{background:rgba(102,126,234,0.08);border:1px solid rgba(102,126,234,0.2);border-radius:8px;padding:16px;margin:16px 0}
 </style>
 </head>
 <body>
 <div class="container">
-<h1>Реквизиты и публичная оферта</h1>
+<h1>Публичная оферта и реквизиты</h1>
 
 <h2>1. Исполнитель</h2>
 <table>
-<tr><td>Наименование</td><td>ИП Маширов Сергей Дмитриевич</td></tr>
+<tr><td>Статус</td><td>Самозанятый (НПД)</td></tr>
+<tr><td>ФИО</td><td>Маширов Сергей Дмитриевич</td></tr>
 <tr><td>ИНН</td><td>526320301575</td></tr>
-<tr><td>Юридический адрес</td><td>г. Москва</td></tr>
 <tr><td>Телефон</td><td>+7 (930) 719-80-05</td></tr>
 <tr><td>Email</td><td>serega.mashirov@gmail.com</td></tr>
 </table>
 
-<h2>2. Услуга</h2>
-<p>Исполнитель предоставляет доступ к сервису «AI-Automator» — платформе автоматизации бизнес-процессов на базе искусственного интеллекта, включая обработку документов, чат с AI, генерацию контента и другие функции.</p>
+<h2>2. Предмет оферты</h2>
+<p>Исполнитель предоставляет Пользователю доступ к сервису «AI-Automator» — платформе автоматизации бизнес-процессов на базе искусственного интеллекта, включая обработку документов, чат с AI, генерацию контента и другие функции.</p>
+<p>Настоящий документ является публичной офертой в соответствии со ст. 437 ГК РФ.</p>
 
-<h2>3. Стоимость</h2>
+<h2>3. Тарифы и стоимость</h2>
 <table>
-<tr><td>«Про»</td><td>1 490 руб./мес</td></tr>
-<tr><td>«Бизнес»</td><td>4 990 руб./мес</td></tr>
+<tr><td>Бесплатный</td><td>0 ₽ — 10 запросов в день</td></tr>
+<tr><td>Про</td><td>1 490 ₽/мес — 500 запросов в день</td></tr>
+<tr><td>Бизнес</td><td>4 990 ₽/мес — безлимит запросов</td></tr>
 </table>
 
 <h2>4. Порядок оплаты</h2>
-<p>Оплата производится онлайн через платёжную систему ЮKassa (ЮKassa). После успешной оплаты доступ к сервису предоставляется автоматически на срок действия подписки.</p>
+<p>Оплата производится онлайн через платёжную систему Robokassa. Доступные способы оплаты: банковские карты (Visa, MasterCard, МИР), СБП (Система Быстрых Платежей), ЮMoney.</p>
+<p>После успешной оплаты доступ к выбранному тарифу предоставляется автоматически и активируется немедленно.</p>
 
-<h2>5. Возврат</h2>
-<p>Возврат денежных средств возможен в течение 14 дней с момента оплаты при обращении по адресу serega.mashirov@gmail.com.</p>
+<h2>5. Порядок и условия возврата денежных средств</h2>
 
-<h2>6. Конфиденциальность</h2>
+<div class="highlight">
+<p><strong>Возврат денежных средств осуществляется в соответствии с Законом РФ «О защите прав потребителей» и правилами дистанционной продажи товаров (работ, услуг).</strong></p>
+</div>
+
+<h3>5.1. Условия возврата</h3>
+<ol>
+<li>Пользователь вправе отказаться от оплаченной услуги в течение <strong>14 календарных дней</strong> с момента оплаты (ст. 26.1 Закона «О защите прав потребителей»).</li>
+<li>Возврат производится при условии, что услуга не была использована или использована частично.</li>
+<li>Если услуга была использована (совершён хотя бы один запрос), возврат осуществляется пропорционально неиспользованному периоду.</li>
+<li>Возврат денежных средств осуществляется на тот же платёжный инструмент, которым была произведена оплата.</li>
+</ol>
+
+<h3>5.2. Перечень документов для оформления возврата</h3>
+<ul>
+<li>Заявление на возврат (в свободной форме или по шаблону).</li>
+<li>Чек или подтверждение оплаты (скриншот, выписка из банка).</li>
+<li>Копия документа, удостоверяющего личность (при необходимости).</li>
+</ul>
+
+<h3>5.3. Порядок действий покупателя</h3>
+<ol>
+<li>Направить заявление на возврат на адрес электронной почты: <strong>serega.mashirov@gmail.com</strong></li>
+<li>Указать: ФИО, email, дату и сумму оплаты, причину возврата.</li>
+<li>Приложить чек/подтверждение оплаты.</li>
+<li>Дождаться ответа от Исполнителя.</li>
+</ol>
+
+<h3>5.4. Сроки рассмотрения и выплат</h3>
+<ul>
+<li>Срок рассмотрения заявления: <strong>не более 3 рабочих дней</strong> с момента получения.</li>
+<li>Срок возврата денежных средств: <strong>не более 10 рабочих дней</strong> с момента принятия решения о возврате (ст. 22 Закона «О защите прав потребителей»).</li>
+<li>Возврат осуществляется на банковскую карту или электронный кошелёк, указанный Пользователем.</li>
+</ul>
+
+<h3>5.5. Основания для отказа в возврате</h3>
+<ul>
+<li>Обращение после истечения 14 календарных дней с момента оплаты (если услуга была использована).</li>
+<li>Отсутствие подтверждения оплаты.</li>
+<li>Использование всех оплаченных запросов в рамках тарифа.</li>
+</ul>
+
+<h2>6. Персональные данные</h2>
 <p>Исполнитель обязуется не передавать персональные данные Пользователя третьим лицам. Обработка данных осуществляется в соответствии с Федеральным законом №152-ФЗ «О персональных данных».</p>
+
+<h2>7. Контакты</h2>
+<p>По вопросам оплаты, возврата и технической поддержки обращайтесь:</p>
+<ul>
+<li>Email: <strong>serega.mashirov@gmail.com</strong></li>
+<li>Телефон: <strong>+7 (930) 719-80-05</strong></li>
+</ul>
 
 <a href="/pricing" class="back">← Вернуться к тарифам</a>
 </div>
@@ -543,7 +596,7 @@ h1{text-align:center;font-family:'Noto Serif SC',serif;font-size:36px;font-weigh
 </div>
 </div>
 
-<div class="footer">AI-Automator &copy; 2026 &middot; ИНН: 526320301575 &middot; ИП Маширов С.Д. &middot; <a href="/legal" style="color:inherit;text-decoration:underline">Публичная оферта</a></div>
+<div class="footer">AI-Automator &copy; 2026 &middot; ИНН: 526320301575 &middot; Самозанятый Маширов С.Д. &middot; <a href="/legal" style="color:inherit;text-decoration:underline">Публичная оферта</a></div>
 
 <script>
 function buy(plan){const email=localStorage.getItem('email');if(!email){alert('Войдите в аккаунт для оплаты');window.location.href='/';return}fetch('/api/payment/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:plan,email:email})}).then(r=>r.json()).then(d=>{if(d.confirmation_url){window.location.href=d.confirmation_url}else{alert(d.error||'Ошибка создания платежа')}}).catch(e=>alert('Ошибка: '+e.message))}
