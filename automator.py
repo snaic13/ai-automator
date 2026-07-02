@@ -202,6 +202,11 @@ def chat(message: str) -> str:
     if len(chat_history) > 30:
         chat_history.pop(0)
         chat_history.pop(0)
+
+    is_long_request = len(message) > 200 or any(w in message.lower() for w in ["подробно", "опиши", "расскажи", "сравни", "проанализируй", "объясни", "напиши эссе", "сделай отчёт"])
+    model = "gpt-4o" if is_long_request else "gpt-4o-mini"
+    max_tok = 16000 if is_long_request else 4000
+
     try:
         messages = [{"role": "system", "content": (
             "Ты — ChatGPT. Отвечай точно так же, как ты отвечаешь на официальном сайте chatgpt.com. "
@@ -219,9 +224,9 @@ def chat(message: str) -> str:
         )}]
         messages.extend(chat_history)
         response = client.chat.completions.create(
-            model=MODEL,
+            model=model,
             messages=messages,
-            max_tokens=MAX_TOKENS,
+            max_tokens=max_tok,
         )
         reply = response.choices[0].message.content
         chat_history.append({"role": "assistant", "content": reply})
