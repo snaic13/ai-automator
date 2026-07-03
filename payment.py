@@ -5,7 +5,7 @@ import urllib.parse
 ROBOKASSA_SHOP_ID = os.environ.get("ROBOKASSA_SHOP_ID", "")
 ROBOKASSA_PASSWORD1 = os.environ.get("ROBOKASSA_PASSWORD1", "")
 ROBOKASSA_PASSWORD2 = os.environ.get("ROBOKASSA_PASSWORD2", "")
-ROBOKASSA_TEST = os.environ.get("ROBOKASSA_TEST", "0") == "1"
+ROBOKASSA_TEST = os.environ.get("ROBOKASSA_TEST", "1") == "1"
 
 PLANS = {
     "starter": {"name": "Стартовый", "price": 490, "currency": "RUB", "requests_limit": 100, "days": 30},
