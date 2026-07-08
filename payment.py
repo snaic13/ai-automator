@@ -31,6 +31,7 @@ def robokassa_init_url(inv_id: str, amount: float, description: str, email: str,
     clean_desc = description.replace(":", "").replace(";", "").replace("&", "")
 
     params = {
+        "MerchantLogin": ROBOKASSA_SHOP_ID,
         "OutSum": out_sum,
         "InvId": inv_id,
         "Description": clean_desc,
