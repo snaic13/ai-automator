@@ -154,11 +154,15 @@ def login(email: str, password: str) -> dict:
 
 
 def check_api_key(api_key: str, count: bool = True) -> dict:
-    users = db_execute(
-        "SELECT * FROM users WHERE api_key = %s" if DATABASE_URL else
-        "SELECT * FROM users WHERE api_key = ?",
-        (api_key,),
-    )
+    try:
+        users = db_execute(
+            "SELECT * FROM users WHERE api_key = %s" if DATABASE_URL else
+            "SELECT * FROM users WHERE api_key = ?",
+            (api_key,),
+        )
+    except Exception as e:
+        return {"valid": False, "error": f"Ошибка базы данных: {e}"}
+
     if not users:
         return {"valid": False, "error": "Неверный API ключ"}
 
@@ -172,12 +176,15 @@ def check_api_key(api_key: str, count: bool = True) -> dict:
             (today, api_key),
         )
 
-    users = db_execute(
-        "SELECT * FROM users WHERE api_key = %s" if DATABASE_URL else
-        "SELECT * FROM users WHERE api_key = ?",
-        (api_key,),
-    )
-    user = users[0]
+    try:
+        users = db_execute(
+            "SELECT * FROM users WHERE api_key = %s" if DATABASE_URL else
+            "SELECT * FROM users WHERE api_key = ?",
+            (api_key,),
+        )
+        user = users[0]
+    except Exception as e:
+        return {"valid": False, "error": f"Ошибка базы данных: {e}"}
 
     if user["requests_today"] >= user["requests_limit"]:
         return {"valid": False, "error": "Лимит запросов исчерпан. Обновите план."}

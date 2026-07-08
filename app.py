@@ -23,7 +23,10 @@ def login_required(f):
         api_key = session.get("api_key") or request.headers.get("X-API-Key")
         if not api_key:
             return jsonify({"error": "Требуется авторизация"}), 401
-        user = check_api_key(api_key, count=False)
+        try:
+            user = check_api_key(api_key, count=False)
+        except Exception as e:
+            return jsonify({"error": f"Ошибка базы данных: {str(e)}"}), 500
         if not user["valid"]:
             return jsonify({"error": user["error"]}), 403
         request.user = user
@@ -36,7 +39,10 @@ def login_required_count(f):
         api_key = session.get("api_key") or request.headers.get("X-API-Key")
         if not api_key:
             return jsonify({"error": "Требуется авторизация"}), 401
-        user = check_api_key(api_key, count=True)
+        try:
+            user = check_api_key(api_key, count=True)
+        except Exception as e:
+            return jsonify({"error": f"Ошибка базы данных: {str(e)}"}), 500
         if not user["valid"]:
             return jsonify({"error": user["error"]}), 403
         request.user = user
