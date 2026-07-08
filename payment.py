@@ -28,14 +28,15 @@ def robokassa_init_url(inv_id: str, amount: float, description: str, email: str,
 
     signature = hashlib.md5(crc_str.encode()).hexdigest()
 
+    clean_desc = description.replace(":", "").replace(";", "").replace("&", "")
+
     params = {
         "OutSum": out_sum,
         "InvId": inv_id,
-        "Desc": description,
+        "Description": clean_desc,
         "Email": email,
         "SignatureValue": signature,
         "Shp_Email": email,
-        "Shp_plan": "",
     }
     if ROBOKASSA_TEST:
         params["IsTest"] = "1"
