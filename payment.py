@@ -40,7 +40,7 @@ def robokassa_init_url(inv_id: str, amount: float, description: str, email: str,
     if ROBOKASSA_TEST:
         params["IsTest"] = "1"
 
-    return "https://auth.robokassa.ru/Merchant/Payment.aspx?" + urllib.parse.urlencode(params)
+    return "https://auth.robokassa.ru/Merchant/Index.aspx?" + urllib.parse.urlencode(params)
 
 
 def robokassa_verify(inv_id: str, out_sum: str, signature_value: str) -> bool:
