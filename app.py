@@ -770,34 +770,13 @@ def payment_create():
 
 @app.route("/api/payment/result", methods=["POST"])
 def payment_result():
-    all_params = dict(request.form)
     inv_id = request.form.get("InvId", "")
     out_sum = request.form.get("OutSum", "")
     signature = request.form.get("SignatureValue", "")
     email = request.form.get("Shp_Email", "")
     requests = request.form.get("Shp_Requests", "")
-    print(f"[PAYMENT CALLBACK] InvId={inv_id} OutSum={out_sum} Email={email} Requests={requests} Sig={signature} AllParams={all_params}")
-
-    from payment import ROBOKASSA_SHOP_ID, ROBOKASSA_TEST_PASSWORD2, ROBOKASSA_PASSWORD2, ROBOKASSA_TEST
-    pwd2 = ROBOKASSA_TEST_PASSWORD2 if ROBOKASSA_TEST and ROBOKASSA_TEST_PASSWORD2 else ROBOKASSA_PASSWORD2
-    print(f"[PAYMENT DEBUG] ROBOKASSA_TEST={ROBOKASSA_TEST} ShopID={ROBOKASSA_SHOP_ID} Pwd2={pwd2[:4]}****")
-
-    import hashlib
-    crc_str = f"{ROBOKASSA_SHOP_ID}:{out_sum}:{inv_id}:{pwd2}"
-    shp_parts = []
-    if email:
-        shp_parts.append(f"Shp_Email={email}")
-    if requests:
-        shp_parts.append(f"Shp_Requests={requests}")
-    shp_parts.sort()
-    if shp_parts:
-        crc_str += ":" + ":".join(shp_parts)
-    expected = hashlib.md5(crc_str.encode()).hexdigest()
-    print(f"[PAYMENT DEBUG] Expected={expected} Got={signature} Match={expected.lower()==signature.lower()}")
-    print(f"[PAYMENT DEBUG] CrcStr={crc_str}")
 
     if robokassa_verify(inv_id, out_sum, signature, email, requests):
-        print(f"[PAYMENT] Signature OK, setting plan for {email}")
         if email:
             if requests:
                 set_plan(email, "custom", 30, int(requests), create_if_missing=True)
@@ -808,7 +787,6 @@ def payment_result():
                     set_plan(email, plan_id, plan["days"], create_if_missing=True)
         return "OK", 200
 
-    print(f"[PAYMENT] INVALID SIGNATURE for InvId={inv_id}")
     return "INVALID SIGNATURE", 400
 
 
@@ -828,18 +806,7 @@ def payment_fail():
     .box{max-width:400px;padding:40px}.btn{display:inline-block;margin-top:20px;padding:12px 32px;background:#26251e;color:#fafafa;text-decoration:none;border-radius:46px;font-size:15px}</style></head>
     <body><div class="box"><h1>Ошибка оплаты</h1><p>Попробуйте ещё раз.</p><a href="/pricing" class="btn">Вернуться к тарифам</a></div></body></html>"""
 
-@app.route("/api/payment/debug", methods=["POST"])
-def payment_debug():
-    from payment import ROBOKASSA_SHOP_ID, ROBOKASSA_TEST_PASSWORD2, ROBOKASSA_PASSWORD2, ROBOKASSA_TEST, ROBOKASSA_TEST_PASSWORD1, ROBOKASSA_PASSWORD1
-    import hashlib
-    all_params = dict(request.form)
-    return jsonify({
-        "shop_id": ROBOKASSA_SHOP_ID,
-        "test_mode": ROBOKASSA_TEST,
-        "pwd1_prefix": (ROBOKASSA_TEST_PASSWORD1 if ROBOKASSA_TEST else ROBOKASSA_PASSWORD1)[:4] if (ROBOKASSA_TEST_PASSWORD1 if ROBOKASSA_TEST else ROBOKASSA_PASSWORD1) else "NONE",
-        "pwd2_prefix": (ROBOKASSA_TEST_PASSWORD2 if ROBOKASSA_TEST else ROBOKASSA_PASSWORD2)[:4] if (ROBOKASSA_TEST_PASSWORD2 if ROBOKASSA_TEST else ROBOKASSA_PASSWORD2) else "NONE",
-        "all_params": all_params
-    })
+
 
 @app.route("/api/auth", methods=["POST"])
 def api_auth():
