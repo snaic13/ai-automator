@@ -207,13 +207,18 @@ def check_api_key(api_key: str, count: bool = True) -> dict:
 def set_plan(email: str, plan: str, days: int = 30, requests: int = 0, create_if_missing: bool = False):
     limits = {"free": 10, "starter": 100, "pro": 500, "enterprise": 9999, "custom": 0}
     paid_until = (datetime.now() + timedelta(days=days)).strftime("%Y-%m-%d")
-    req_limit = requests if requests > 0 else limits.get(plan, 10)
 
     users = db_execute(
-        "SELECT id FROM users WHERE email = %s" if DATABASE_URL else
-        "SELECT id FROM users WHERE email = ?",
+        "SELECT id, requests_limit FROM users WHERE email = %s" if DATABASE_URL else
+        "SELECT id, requests_limit FROM users WHERE email = ?",
         (email,),
     )
+
+    if plan == "custom" and requests > 0 and users:
+        current_limit = users[0].get("requests_limit", 0) if isinstance(users[0], dict) else 0
+        req_limit = current_limit + requests
+    else:
+        req_limit = requests if requests > 0 else limits.get(plan, 10)
 
     if not users and create_if_missing:
         api_key = generate_api_key()
