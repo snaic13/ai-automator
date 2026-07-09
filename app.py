@@ -75,11 +75,12 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .tab{flex:1;padding:10px;text-align:center;cursor:pointer;background:transparent;color:var(--ink-soft);font-size:14px;font-weight:500;transition:all 0.2s}
 .tab.active{background:var(--ink);color:#fafafa}
 
-.form-group{margin-bottom:16px}
+.form-group{margin-bottom:16px;position:relative}
 label{display:block;margin-bottom:5px;color:var(--ink-soft);font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:0.5px}
 input{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--ink);font-size:14px;font-family:inherit;transition:border-color 0.2s}
 input:focus{outline:none;border-color:var(--ink)}
 input::placeholder{color:#aaa}
+.pw-toggle{position:absolute;right:12px;top:32px;cursor:pointer;font-size:16px;color:var(--ink-soft);user-select:none}
 
 .submit-btn{width:100%;padding:12px;border:1px solid var(--ink);border-radius:46px;background:var(--ink);color:#fafafa;font-size:15px;font-weight:500;cursor:pointer;transition:all 0.2s;font-family:inherit;letter-spacing:0.2px}
 .submit-btn:hover{background:#3a3933;border-color:#3a3933;transform:translateY(-1px)}
@@ -107,12 +108,12 @@ input::placeholder{color:#aaa}
 </div>
 <form id="loginForm" onsubmit="return submitAuth('login')">
 <div class="form-group"><label>Email</label><input type="email" id="loginEmail" required placeholder="your@email.com"></div>
-<div class="form-group"><label>Пароль</label><input type="password" id="loginPass" required placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"></div>
+<div class="form-group"><label>Пароль</label><input type="password" id="loginPass" required placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"><span class="pw-toggle" onclick="togglePw('loginPass')">👁</span></div>
 <button type="submit" class="submit-btn">Войти</button>
 </form>
 <form id="registerForm" style="display:none" onsubmit="return submitAuth('register')">
 <div class="form-group"><label>Email</label><input type="email" id="regEmail" required placeholder="your@email.com"></div>
-<div class="form-group"><label>Пароль</label><input type="password" id="regPass" required placeholder="Минимум 6 символов" minlength="6"></div>
+<div class="form-group"><label>Пароль</label><input type="password" id="regPass" required placeholder="Минимум 6 символов" minlength="6"><span class="pw-toggle" onclick="togglePw('regPass')">👁</span></div>
 <button type="submit" class="submit-btn">Создать аккаунт</button>
 </form>
 <div class="features-row">
@@ -129,6 +130,7 @@ input::placeholder{color:#aaa}
 <div style="text-align:center;padding:12px;font-size:11px;color:#666;background:#fff;border-top:1px solid #eee">ИНН: 526320301575 &middot; Самозанятый Маширов С.Д. &middot; <a href="/legal" style="color:#666;text-decoration:underline">Публичная оферта</a> &middot; <a href="/pricing" style="color:#666;text-decoration:underline">Тарифы</a></div>
 
 <script>
+function togglePw(id){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password'}
 function switchTab(t){document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));event.target.classList.add('active');document.getElementById('loginForm').style.display=t==='login'?'block':'none';document.getElementById('registerForm').style.display=t==='register'?'block':'none';document.getElementById('error').style.display='none'}
 async function submitAuth(t){event.preventDefault();const e=document.getElementById(t==='login'?'loginEmail':'regEmail').value,p=document.getElementById(t==='login'?'loginPass':'regPass').value;try{const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:t,email:e,password:p})});const d=await r.json();if(d.success){localStorage.setItem('api_key',d.api_key);localStorage.setItem('email',d.email);window.location.href='/app'}else{document.getElementById('error').textContent=d.error;document.getElementById('error').style.display='block'}}catch(er){document.getElementById('error').textContent='Ошибка соединения';document.getElementById('error').style.display='block'}return false}
 
@@ -750,12 +752,12 @@ def payment_result():
     if robokassa_verify(inv_id, out_sum, signature, email, requests):
         if email:
             if requests:
-                set_plan(email, "custom", 30, int(requests))
+                set_plan(email, "custom", 30, int(requests), create_if_missing=True)
             else:
                 plan_id = request.form.get("Shp_plan", "")
                 plan = PLANS.get(plan_id)
                 if plan:
-                    set_plan(email, plan_id, plan["days"])
+                    set_plan(email, plan_id, plan["days"], create_if_missing=True)
         return "OK", 200
 
     return "INVALID SIGNATURE", 400

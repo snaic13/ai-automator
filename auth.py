@@ -204,7 +204,7 @@ def check_api_key(api_key: str, count: bool = True) -> dict:
     }
 
 
-def set_plan(email: str, plan: str, days: int = 30, requests: int = 0):
+def set_plan(email: str, plan: str, days: int = 30, requests: int = 0, create_if_missing: bool = False):
     limits = {"free": 10, "starter": 100, "pro": 500, "enterprise": 9999, "custom": 0}
     paid_until = (datetime.now() + timedelta(days=days)).strftime("%Y-%m-%d")
     req_limit = requests if requests > 0 else limits.get(plan, 10)
@@ -215,7 +215,7 @@ def set_plan(email: str, plan: str, days: int = 30, requests: int = 0):
         (email,),
     )
 
-    if not users:
+    if not users and create_if_missing:
         api_key = generate_api_key()
         default_password = "paid123"
         db_update(
@@ -223,7 +223,7 @@ def set_plan(email: str, plan: str, days: int = 30, requests: int = 0):
             "INSERT INTO users (email, password_hash, api_key, plan, requests_limit, paid_until) VALUES (?, ?, ?, ?, ?, ?)",
             (email, hash_password(default_password), api_key, plan, req_limit, paid_until),
         )
-    else:
+    elif users:
         db_update(
             "UPDATE users SET plan = %s, requests_limit = %s, paid_until = %s WHERE email = %s" if DATABASE_URL else
             "UPDATE users SET plan = ?, requests_limit = ?, paid_until = ? WHERE email = ?",
