@@ -543,6 +543,23 @@ h1{text-align:center;font-family:'Noto Serif SC',serif;font-size:36px;font-weigh
 .buy-btn.primary{background:var(--ink);color:var(--bg)}
 .buy-btn.primary:hover{opacity:0.85}
 
+.custom-section{margin-top:48px;text-align:center}
+.custom-section h2{font-size:24px;margin-bottom:8px}
+.custom-section .subtitle{color:var(--ink-soft);margin-bottom:32px}
+.custom-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:40px 32px;max-width:480px;margin:0 auto}
+.custom-card .slider-row{display:flex;align-items:center;gap:16px;margin-bottom:24px}
+.custom-card input[type=range]{flex:1;height:6px;-webkit-appearance:none;background:var(--card-border);border-radius:3px;outline:none}
+.custom-card input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--ink);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.custom-card .val{font-size:20px;font-weight:700;min-width:80px;text-align:right}
+.custom-card .divider{color:var(--ink-soft);margin:16px 0;font-size:13px}
+.custom-card .input-row{display:flex;gap:12px;align-items:center;justify-content:center;margin-bottom:24px}
+.custom-card .input-row label{font-size:14px;color:var(--ink-soft)}
+.custom-card .input-row input[type=number]{width:140px;padding:12px 16px;border:1px solid var(--card-border);border-radius:12px;font-size:18px;font-weight:600;text-align:center;background:var(--bg);color:var(--ink);font-family:inherit}
+.custom-card .input-row input[type=number]:focus{outline:none;border-color:var(--ink)}
+.custom-card .price-display{font-size:36px;font-weight:800;margin-bottom:8px}
+.custom-card .price-display span{font-size:14px;font-weight:400;color:var(--ink-soft)}
+.custom-card .per-req{font-size:13px;color:var(--ink-soft);margin-bottom:24px}
+
 .footer{margin-top:60px;padding:30px 0;border-top:1px solid var(--card-border);text-align:center;color:var(--ink-soft);font-size:12px}
 
 @media(max-width:640px){.plans{grid-template-columns:1fr;max-width:360px;margin:0 auto}h1{font-size:28px}.topbar{padding:0 16px}}
@@ -600,12 +617,67 @@ h1{text-align:center;font-family:'Noto Serif SC',serif;font-size:36px;font-weigh
 <button class="buy-btn" onclick="buy('business')">Оплатить 4 990 ₽</button>
 </div>
 </div>
+
+<div class="custom-section">
+<h2>Свой тариф</h2>
+<p class="subtitle">Выберите количество запросов или введите сумму</p>
+<div class="custom-card">
+<div class="slider-row">
+<input type="range" id="reqSlider" min="10" max="1000" value="100" step="10">
+<div class="val" id="reqVal">100</div>
+</div>
+<div class="divider">— или —</div>
+<div class="input-row">
+<label>Сумма:</label>
+<input type="number" id="sumInput" min="30" max="50000" value="300" step="10">
+<label>₽</label>
+</div>
+<div class="price-display" id="priceDisplay">300 ₽</div>
+<div class="per-req" id="perReq">≈ 3 ₽ за запрос</div>
+<button class="buy-btn primary" onclick="buyCustom()">Оплатить</button>
+</div>
+</div>
+
 </div>
 
 <div class="footer">AI-Automator &copy; 2026 &middot; ИНН: 526320301575 &middot; Самозанятый Маширов С.Д. &middot; <a href="/legal" style="color:inherit;text-decoration:underline">Публичная оферта</a></div>
 
 <script>
+const PRICE_PER_REQ=3;
+const slider=document.getElementById('reqSlider');
+const reqVal=document.getElementById('reqVal');
+const sumInput=document.getElementById('sumInput');
+const priceDisplay=document.getElementById('priceDisplay');
+const perReq=document.getElementById('perReq');
+
+slider.addEventListener('input',function(){
+const r=parseInt(this.value);
+const s=r*PRICE_PER_REQ;
+reqVal.textContent=r;
+sumInput.value=s;
+priceDisplay.textContent=s.toLocaleString('ru-RU')+' ₽';
+perReq.textContent='≈ '+PRICE_PER_REQ+' ₽ за запрос';
+});
+
+sumInput.addEventListener('input',function(){
+const s=Math.max(30,Math.min(50000,parseInt(this.value)||30));
+const r=Math.round(s/PRICE_PER_REQ);
+slider.value=Math.min(1000,Math.max(10,r));
+reqVal.textContent=r;
+priceDisplay.textContent=s.toLocaleString('ru-RU')+' ₽';
+perReq.textContent='≈ '+PRICE_PER_REQ+' ₽ за запрос';
+});
+
 function buy(plan){const email=localStorage.getItem('email');if(!email){alert('Войдите в аккаунт для оплаты');window.location.href='/';return}fetch('/api/payment/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:plan,email:email})}).then(r=>r.json()).then(d=>{if(d.confirmation_url){window.location.href=d.confirmation_url}else{alert(d.error||'Ошибка создания платежа')}}).catch(e=>alert('Ошибка: '+e.message))}
+
+function buyCustom(){
+const email=localStorage.getItem('email');
+if(!email){alert('Войдите в аккаунт для оплаты');window.location.href='/';return}
+const sum=parseInt(sumInput.value);
+const reqs=Math.round(sum/PRICE_PER_REQ);
+if(sum<30){alert('Минимальная сумма — 30 ₽');return}
+fetch('/api/payment/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:'custom',email:email,amount:sum,requests:reqs})}).then(r=>r.json()).then(d=>{if(d.confirmation_url){window.location.href=d.confirmation_url}else{alert(d.error||'Ошибка создания платежа')}}).catch(e=>alert('Ошибка: '+e.message))
+}
 </script>
 </body>
 </html>"""
@@ -630,9 +702,21 @@ def payment_create():
     if not plan_id or not email:
         return jsonify({"error": "Не указан тариф или email"}), 400
 
-    plan = PLANS.get(plan_id)
-    if not plan:
-        return jsonify({"error": "Неизвестный тариф"}), 400
+    if plan_id == "custom":
+        amount = data.get("amount", 0)
+        requests = data.get("requests", 0)
+        if amount < 30 or requests < 1:
+            return jsonify({"error": "Минимальная сумма — 30 ₽"}), 400
+        description = f"AI-Automator: {requests} запросов"
+        shp_requests = str(requests)
+    else:
+        plan = PLANS.get(plan_id)
+        if not plan:
+            return jsonify({"error": "Неизвестный тариф"}), 400
+        amount = plan["price"]
+        requests = plan["requests_limit"]
+        description = f"AI-Automator: {plan['name']}"
+        shp_requests = str(requests)
 
     import time
     inv_id = str(int(time.time()))
@@ -641,11 +725,12 @@ def payment_create():
 
     url = robokassa_init_url(
         inv_id=inv_id,
-        amount=plan["price"],
-        description=f"AI-Automator: {plan['name']}",
+        amount=amount,
+        description=description,
         email=email,
         success_url=success_url,
         fail_url=fail_url,
+        requests=shp_requests,
     )
 
     if not url:
@@ -660,13 +745,17 @@ def payment_result():
     out_sum = request.form.get("OutSum", "")
     signature = request.form.get("SignatureValue", "")
     email = request.form.get("Shp_Email", "")
+    requests = request.form.get("Shp_Requests", "")
 
-    if robokassa_verify(inv_id, out_sum, signature, email):
-        plan_id = request.form.get("Shp_plan", "")
+    if robokassa_verify(inv_id, out_sum, signature, email, requests):
         if email:
-            plan = PLANS.get(plan_id)
-            if plan:
-                set_plan(email, plan_id, plan["days"])
+            if requests:
+                set_plan(email, "custom", 30, int(requests))
+            else:
+                plan_id = request.form.get("Shp_plan", "")
+                plan = PLANS.get(plan_id)
+                if plan:
+                    set_plan(email, plan_id, plan["days"])
         return "OK", 200
 
     return "INVALID SIGNATURE", 400

@@ -204,13 +204,14 @@ def check_api_key(api_key: str, count: bool = True) -> dict:
     }
 
 
-def set_plan(email: str, plan: str, days: int = 30):
-    limits = {"free": 10, "starter": 100, "pro": 500, "enterprise": 9999}
+def set_plan(email: str, plan: str, days: int = 30, requests: int = 0):
+    limits = {"free": 10, "starter": 100, "pro": 500, "enterprise": 9999, "custom": 0}
     paid_until = (datetime.now() + timedelta(days=days)).strftime("%Y-%m-%d")
+    req_limit = requests if requests > 0 else limits.get(plan, 10)
     db_update(
         "UPDATE users SET plan = %s, requests_limit = %s, paid_until = %s WHERE email = %s" if DATABASE_URL else
         "UPDATE users SET plan = ?, requests_limit = ?, paid_until = ? WHERE email = ?",
-        (plan, limits.get(plan, 10), paid_until, email),
+        (plan, req_limit, paid_until, email),
     )
 
 
