@@ -139,6 +139,27 @@ def register(email: str, password: str) -> dict:
         return {"success": False, "error": "Email уже зарегистрирован"}
 
 
+def change_password(email: str, old_password: str, new_password: str) -> dict:
+    users = db_execute(
+        "SELECT * FROM users WHERE email = %s" if DATABASE_URL else
+        "SELECT * FROM users WHERE email = ?",
+        (email,),
+    )
+    if not users:
+        return {"success": False, "error": "Пользователь не найден"}
+    user = users[0]
+    if not check_password(old_password, user["password_hash"]):
+        return {"success": False, "error": "Неверный текущий пароль"}
+    if len(new_password) < 6:
+        return {"success": False, "error": "Новый пароль должен быть не менее 6 символов"}
+    db_update(
+        "UPDATE users SET password_hash = %s WHERE email = %s" if DATABASE_URL else
+        "UPDATE users SET password_hash = ? WHERE email = ?",
+        (hash_password(new_password), email),
+    )
+    return {"success": True, "message": "Пароль изменён"}
+
+
 def login(email: str, password: str) -> dict:
     users = db_execute(
         "SELECT * FROM users WHERE email = %s" if DATABASE_URL else

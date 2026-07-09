@@ -10,7 +10,7 @@ from automator import (
     chat, generate_image_idea, business_idea, resume_improve,
     legal_review, math_solve, code_generate, email_compose, social_post
 )
-from auth import register, login, check_api_key, set_plan, ADMIN_KEY
+from auth import register, login, check_api_key, set_plan, change_password, ADMIN_KEY
 from payment import PLANS
 from payment import robokassa_init_url, robokassa_verify
 
@@ -267,6 +267,7 @@ textarea::placeholder{color:var(--ink-soft);opacity:0.5}
 <span class="usage" id="usageInfo"></span>
 <a href="/pricing" style="color:var(--ink-soft);text-decoration:none;font-size:11px;border:1px solid var(--border);padding:3px 10px;border-radius:12px;white-space:nowrap;transition:all 0.2s" onmouseover="this.style.borderColor='var(--ink)';this.style.color='var(--ink)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--ink-soft)'">Тарифы</a>
 <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" title="Сменить тему">☀️</button>
+<button class="logout" onclick="document.getElementById('pwModal').style.display='flex'" title="Настройки аккаунта">⚙️</button>
 <button class="logout" onclick="window.location.href='/logout'">Выйти</button>
 </div>
 </div>
@@ -349,6 +350,9 @@ function handleFile(event){const f=event.target.files[0];if(!f)return;document.g
 
 async function process(){const input=document.getElementById('input').value;if(!input.trim()&&!uploadedFile)return;const btn=document.querySelector('.submit-btn');const card=document.getElementById('resultCard');const res=document.getElementById('result');btn.disabled=true;btn.textContent='Обработка...';card.classList.add('visible');res.innerHTML='<span class="loading">AI обрабатывает запрос</span>';try{const p={text:input,mode:mode};if(uploadedFile&&uploadedFile.type==='image'){p.image=uploadedFile.data;p.image_name=uploadedFile.name;p.mode='image'}else if(uploadedFile&&uploadedFile.type==='binary'){p.file_data=uploadedFile.data;p.file_ext=uploadedFile.ext;p.file_name=uploadedFile.name;p.mode='file'}if(mode==='url'&&(input.includes('http://')||input.includes('https://')))p.mode='url';const r=await fetch('/api/process',{method:'POST',headers:{'Content-Type':'application/json','X-API-Key':API_KEY},body:JSON.stringify(p)});const d=await r.json();res.textContent=d.result||d.error;uploadedFile=null;loadUsage()}catch(e){res.textContent='Ошибка: '+e.message}btn.disabled=false;btn.textContent='Обработать'}
 
+function closePwModal(){document.getElementById('pwModal').style.display='none'}
+async function changePw(){const o=document.getElementById('oldPw').value,n=document.getElementById('newPw').value,c=document.getElementById('confirmPw').value,m=document.getElementById('pwMsg');if(!o||!n||!c){m.textContent='Заполните все поля';m.style.color='#dc2626';return}if(n!==c){m.textContent='Пароли не совпадают';m.style.color='#dc2626';return}if(n.length<6){m.textContent='Минимум 6 символов';m.style.color='#dc2626';return}try{const r=await fetch('/api/change-password',{method:'POST',headers:{'Content-Type':'application/json','X-API-Key':API_KEY},body:JSON.stringify({old_password:o,new_password:n})});const d=await r.json();if(d.success){m.textContent='Пароль изменён!';m.style.color='#16a34a';document.getElementById('oldPw').value='';document.getElementById('newPw').value='';document.getElementById('confirmPw').value=''}else{m.textContent=d.error||'Ошибка';m.style.color='#dc2626'}}catch(e){m.textContent='Ошибка соединения';m.style.color='#dc2626'}}
+
 (function(){
 const hero=document.getElementById('hero'),canvas=document.getElementById('heroMask');
 if(!hero||!canvas)return;
@@ -373,6 +377,16 @@ hero.addEventListener('mousemove',e=>{const r=hero.getBoundingClientRect();stamp
 hero.addEventListener('mouseleave',()=>{lastX=null;lastY=null});
 })();
 </script>
+<div id="pwModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.5);align-items:center;justify-content:center" onclick="if(event.target===this)closePwModal()">
+<div style="background:var(--bg);border-radius:16px;padding:32px;max-width:380px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2)">
+<h3 style="margin-bottom:20px;font-size:18px">Смена пароля</h3>
+<div style="margin-bottom:12px"><label style="display:block;font-size:12px;color:var(--ink-soft);margin-bottom:4px">Текущий пароль</label><input type="password" id="oldPw" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:transparent;color:var(--ink)"></div>
+<div style="margin-bottom:12px"><label style="display:block;font-size:12px;color:var(--ink-soft);margin-bottom:4px">Новый пароль</label><input type="password" id="newPw" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:transparent;color:var(--ink)"></div>
+<div style="margin-bottom:16px"><label style="display:block;font-size:12px;color:var(--ink-soft);margin-bottom:4px">Повторите пароль</label><input type="password" id="confirmPw" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:transparent;color:var(--ink)"></div>
+<div id="pwMsg" style="font-size:13px;margin-bottom:12px"></div>
+<div style="display:flex;gap:8px"><button onclick="changePw()" style="flex:1;padding:10px;background:var(--ink);color:var(--bg);border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit">Сохранить</button><button onclick="closePwModal()" style="padding:10px 16px;background:transparent;border:1px solid var(--border);border-radius:8px;font-size:14px;cursor:pointer;color:var(--ink);font-family:inherit">Отмена</button></div>
+</div>
+</div>
 </body>
 </html>"""
 
@@ -800,6 +814,17 @@ def api_auth():
 def api_usage():
     u = request.user
     return jsonify({"email": u["email"], "plan": u["plan"], "remaining": u["remaining"]})
+
+@app.route("/api/change-password", methods=["POST"])
+@login_required
+def api_change_password():
+    data = request.json
+    old_password = data.get("old_password", "")
+    new_password = data.get("new_password", "")
+    if not old_password or not new_password:
+        return jsonify({"error": "Заполните оба поля"}), 400
+    result = change_password(request.user["email"], old_password, new_password)
+    return jsonify(result)
 
 @app.route("/api/admin/plan", methods=["POST"])
 def admin_set_plan():
