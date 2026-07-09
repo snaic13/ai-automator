@@ -217,11 +217,11 @@ def set_plan(email: str, plan: str, days: int = 30, requests: int = 0):
 
     if not users:
         api_key = generate_api_key()
-        random_password = secrets.token_hex(8)
+        default_password = "paid123"
         db_update(
             "INSERT INTO users (email, password_hash, api_key, plan, requests_limit, paid_until) VALUES (%s, %s, %s, %s, %s, %s)" if DATABASE_URL else
             "INSERT INTO users (email, password_hash, api_key, plan, requests_limit, paid_until) VALUES (?, ?, ?, ?, ?, ?)",
-            (email, hash_password(random_password), api_key, plan, req_limit, paid_until),
+            (email, hash_password(default_password), api_key, plan, req_limit, paid_until),
         )
     else:
         db_update(

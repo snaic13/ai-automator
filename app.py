@@ -765,8 +765,9 @@ def payment_result():
 def payment_success():
     return """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Оплата прошла</title>
     <style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#fcfaf8;color:#26251e;text-align:center}
-    .box{max-width:400px;padding:40px}.check{font-size:64px;margin-bottom:16px}.btn{display:inline-block;margin-top:20px;padding:12px 32px;background:#26251e;color:#fafafa;text-decoration:none;border-radius:46px;font-size:15px}</style></head>
-    <body><div class="box"><div class="check">✅</div><h1>Оплата прошла!</h1><p>Ваш тариф активирован. Войдите в аккаунт.</p><a href="/app" class="btn">Перейти в приложение</a></div></body></html>"""
+    .box{max-width:400px;padding:40px}.check{font-size:64px;margin-bottom:16px}.btn{display:inline-block;margin-top:20px;padding:12px 32px;background:#26251e;color:#fafafa;text-decoration:none;border-radius:46px;font-size:15px}
+    .note{font-size:13px;color:#666;margin-top:16px;padding:12px;background:#f5f5f5;border-radius:8px}</style></head>
+    <body><div class="box"><div class="check">✅</div><h1>Оплата прошла!</h1><p>Ваш тариф активирован. Войдите в аккаунт.</p><div class="note">Если вы ранее не регистрировались — пароль по умолчанию: <b>paid123</b><br>Рекомендуется сменить пароль после входа.</div><a href="/app" class="btn">Перейти в приложение</a></div></body></html>"""
 
 
 @app.route("/api/payment/fail")
