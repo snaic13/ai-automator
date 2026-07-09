@@ -51,17 +51,24 @@ def robokassa_init_url(inv_id: str, amount: float, description: str, email: str,
 
 
 def robokassa_verify(inv_id: str, out_sum: str, signature_value: str, email: str = "", requests: str = "") -> bool:
-    pwd2 = ROBOKASSA_TEST_PASSWORD2 if ROBOKASSA_TEST and ROBOKASSA_TEST_PASSWORD2 else ROBOKASSA_PASSWORD2
-    if not pwd2:
+    passwords = []
+    if ROBOKASSA_TEST_PASSWORD2:
+        passwords.append(ROBOKASSA_TEST_PASSWORD2)
+    if ROBOKASSA_PASSWORD2:
+        passwords.append(ROBOKASSA_PASSWORD2)
+    if not passwords:
         return False
-    crc_str = f"{ROBOKASSA_SHOP_ID}:{out_sum}:{inv_id}:{pwd2}"
-    shp_parts = []
-    if email:
-        shp_parts.append(f"Shp_Email={email}")
-    if requests:
-        shp_parts.append(f"Shp_Requests={requests}")
-    shp_parts.sort()
-    if shp_parts:
-        crc_str += ":" + ":".join(shp_parts)
-    expected = hashlib.md5(crc_str.encode()).hexdigest()
-    return signature_value.lower() == expected.lower()
+    for pwd2 in passwords:
+        crc_str = f"{ROBOKASSA_SHOP_ID}:{out_sum}:{inv_id}:{pwd2}"
+        shp_parts = []
+        if email:
+            shp_parts.append(f"Shp_Email={email}")
+        if requests:
+            shp_parts.append(f"Shp_Requests={requests}")
+        shp_parts.sort()
+        if shp_parts:
+            crc_str += ":" + ":".join(shp_parts)
+        expected = hashlib.md5(crc_str.encode()).hexdigest()
+        if signature_value.lower() == expected.lower():
+            return True
+    return False
