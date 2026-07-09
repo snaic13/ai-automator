@@ -16,6 +16,7 @@ from payment import robokassa_init_url, robokassa_verify
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
+payment_logs = []
 
 def login_required(f):
     @wraps(f)
@@ -776,10 +777,13 @@ def payment_result():
     signature = request.form.get("SignatureValue", "")
     email = request.form.get("Shp_Email", "")
     requests = request.form.get("Shp_Requests", "")
-    print(f"[PAYMENT] InvId={inv_id} OutSum={out_sum} Email={email} Requests={requests} Sig={signature} Params={all_params}")
+    result = "FAIL" if not robokassa_verify(inv_id, out_sum, signature, email, requests) else "OK"
+    from datetime import datetime
+    payment_logs.append({"time": datetime.now().isoformat(), "inv_id": inv_id, "out_sum": out_sum, "email": email, "requests": requests, "result": result, "sig": signature})
+    if len(payment_logs) > 50:
+        payment_logs.pop(0)
 
-    if robokassa_verify(inv_id, out_sum, signature, email, requests):
-        print(f"[PAYMENT] OK - setting plan for {email}")
+    if result == "OK":
         if email:
             if requests:
                 set_plan(email, "custom", 30, int(requests), create_if_missing=True)
@@ -790,8 +794,11 @@ def payment_result():
                     set_plan(email, plan_id, plan["days"], create_if_missing=True)
         return "OK", 200
 
-    print(f"[PAYMENT] FAIL - invalid signature")
     return "INVALID SIGNATURE", 400
+
+@app.route("/api/payment/logs")
+def payment_logs_view():
+    return jsonify(payment_logs[-20:])
 
 
 @app.route("/payment/success", methods=["GET", "POST"])
