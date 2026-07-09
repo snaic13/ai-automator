@@ -763,7 +763,7 @@ def payment_result():
     return "INVALID SIGNATURE", 400
 
 
-@app.route("/api/payment/success", methods=["GET", "POST"])
+@app.route("/payment/success", methods=["GET", "POST"])
 def payment_success():
     return """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Оплата прошла</title>
     <style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#fcfaf8;color:#26251e;text-align:center}
@@ -772,7 +772,7 @@ def payment_success():
     <body><div class="box"><div class="check">✅</div><h1>Оплата прошла!</h1><p>Ваш тариф активирован. Войдите в аккаунт.</p><div class="note">Если вы ранее не регистрировались — пароль по умолчанию: <b>paid123</b><br>Рекомендуется сменить пароль после входа.</div><a href="/app" class="btn">Перейти в приложение</a></div></body></html>"""
 
 
-@app.route("/api/payment/fail")
+@app.route("/payment/fail")
 def payment_fail():
     return """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Ошибка оплаты</title>
     <style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#fcfaf8;color:#26251e;text-align:center}
