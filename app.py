@@ -830,35 +830,15 @@ def payment_fail():
 
 @app.route("/api/payment/debug", methods=["POST"])
 def payment_debug():
-    from payment import ROBOKASSA_SHOP_ID, ROBOKASSA_TEST_PASSWORD2, ROBOKASSA_PASSWORD2, ROBOKASSA_TEST
-    all_params = dict(request.form)
-    inv_id = request.form.get("InvId", "")
-    out_sum = request.form.get("OutSum", "")
-    signature = request.form.get("SignatureValue", "")
-    email = request.form.get("Shp_Email", "")
-    requests_val = request.form.get("Shp_Requests", "")
-    pwd2 = ROBOKASSA_TEST_PASSWORD2 if ROBOKASSA_TEST and ROBOKASSA_TEST_PASSWORD2 else ROBOKASSA_PASSWORD2
+    from payment import ROBOKASSA_SHOP_ID, ROBOKASSA_TEST_PASSWORD2, ROBOKASSA_PASSWORD2, ROBOKASSA_TEST, ROBOKASSA_TEST_PASSWORD1, ROBOKASSA_PASSWORD1
     import hashlib
-    crc_str = f"{ROBOKASSA_SHOP_ID}:{out_sum}:{inv_id}:{pwd2}"
-    shp_parts = []
-    if email:
-        shp_parts.append(f"Shp_Email={email}")
-    if requests_val:
-        shp_parts.append(f"Shp_Requests={requests_val}")
-    shp_parts.sort()
-    if shp_parts:
-        crc_str += ":" + ":".join(shp_parts)
-    expected = hashlib.md5(crc_str.encode()).hexdigest()
+    all_params = dict(request.form)
     return jsonify({
-        "all_params": all_params,
-        "email_received": email,
-        "requests_received": requests_val,
-        "expected_signature": expected,
-        "got_signature": signature,
-        "match": expected.lower() == signature.lower(),
-        "crc_str": crc_str,
-        "pwd2_prefix": pwd2[:4] if pwd2 else "NONE",
-        "test_mode": ROBOKASSA_TEST
+        "shop_id": ROBOKASSA_SHOP_ID,
+        "test_mode": ROBOKASSA_TEST,
+        "pwd1_prefix": (ROBOKASSA_TEST_PASSWORD1 if ROBOKASSA_TEST else ROBOKASSA_PASSWORD1)[:4] if (ROBOKASSA_TEST_PASSWORD1 if ROBOKASSA_TEST else ROBOKASSA_PASSWORD1) else "NONE",
+        "pwd2_prefix": (ROBOKASSA_TEST_PASSWORD2 if ROBOKASSA_TEST else ROBOKASSA_PASSWORD2)[:4] if (ROBOKASSA_TEST_PASSWORD2 if ROBOKASSA_TEST else ROBOKASSA_PASSWORD2) else "NONE",
+        "all_params": all_params
     })
 
 @app.route("/api/auth", methods=["POST"])
