@@ -828,6 +828,39 @@ def payment_fail():
     .box{max-width:400px;padding:40px}.btn{display:inline-block;margin-top:20px;padding:12px 32px;background:#26251e;color:#fafafa;text-decoration:none;border-radius:46px;font-size:15px}</style></head>
     <body><div class="box"><h1>Ошибка оплаты</h1><p>Попробуйте ещё раз.</p><a href="/pricing" class="btn">Вернуться к тарифам</a></div></body></html>"""
 
+@app.route("/api/payment/debug", methods=["POST"])
+def payment_debug():
+    from payment import ROBOKASSA_SHOP_ID, ROBOKASSA_TEST_PASSWORD2, ROBOKASSA_PASSWORD2, ROBOKASSA_TEST
+    all_params = dict(request.form)
+    inv_id = request.form.get("InvId", "")
+    out_sum = request.form.get("OutSum", "")
+    signature = request.form.get("SignatureValue", "")
+    email = request.form.get("Shp_Email", "")
+    requests_val = request.form.get("Shp_Requests", "")
+    pwd2 = ROBOKASSA_TEST_PASSWORD2 if ROBOKASSA_TEST and ROBOKASSA_TEST_PASSWORD2 else ROBOKASSA_PASSWORD2
+    import hashlib
+    crc_str = f"{ROBOKASSA_SHOP_ID}:{out_sum}:{inv_id}:{pwd2}"
+    shp_parts = []
+    if email:
+        shp_parts.append(f"Shp_Email={email}")
+    if requests_val:
+        shp_parts.append(f"Shp_Requests={requests_val}")
+    shp_parts.sort()
+    if shp_parts:
+        crc_str += ":" + ":".join(shp_parts)
+    expected = hashlib.md5(crc_str.encode()).hexdigest()
+    return jsonify({
+        "all_params": all_params,
+        "email_received": email,
+        "requests_received": requests_val,
+        "expected_signature": expected,
+        "got_signature": signature,
+        "match": expected.lower() == signature.lower(),
+        "crc_str": crc_str,
+        "pwd2_prefix": pwd2[:4] if pwd2 else "NONE",
+        "test_mode": ROBOKASSA_TEST
+    })
+
 @app.route("/api/auth", methods=["POST"])
 def api_auth():
     data = request.json
