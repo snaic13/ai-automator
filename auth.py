@@ -1,6 +1,8 @@
 import os
 import hashlib
 import secrets
+import smtplib
+from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
@@ -137,6 +139,45 @@ def register(email: str, password: str) -> dict:
         return {"success": True, "api_key": api_key, "email": email}
     except Exception:
         return {"success": False, "error": "Email уже зарегистрирован"}
+
+
+def reset_password(email: str) -> dict:
+    users = db_execute(
+        "SELECT id FROM users WHERE email = %s" if DATABASE_URL else
+        "SELECT id FROM users WHERE email = ?",
+        (email,),
+    )
+    if not users:
+        return {"success": False, "error": "Email не найден"}
+
+    new_password = secrets.token_hex(4)
+    db_update(
+        "UPDATE users SET password_hash = %s WHERE email = %s" if DATABASE_URL else
+        "UPDATE users SET password_hash = ? WHERE email = ?",
+        (hash_password(new_password), email),
+    )
+
+    smtp_host = os.environ.get("SMTP_HOST", "")
+    smtp_port = int(os.environ.get("SMTP_PORT", "587"))
+    smtp_user = os.environ.get("SMTP_USER", "")
+    smtp_pass = os.environ.get("SMTP_PASS", "")
+    from_email = os.environ.get("FROM_EMAIL", smtp_user)
+
+    if smtp_host and smtp_user and smtp_pass:
+        try:
+            msg = MIMEText(f"Ваш новый пароль: {new_password}\n\nРекомендуется сменить пароль после входа.", "plain", "utf-8")
+            msg["Subject"] = "AI-Automator — Сброс пароля"
+            msg["From"] = from_email
+            msg["To"] = email
+            with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
+                server.starttls()
+                server.login(smtp_user, smtp_pass)
+                server.sendmail(from_email, [email], msg.as_string())
+            return {"success": True, "message": "Новый пароль отправлен на почту"}
+        except Exception as e:
+            return {"success": True, "message": f"Новый пароль: {new_password} (email не отправлен: {e})"}
+    else:
+        return {"success": True, "message": f"Новый пароль: {new_password}"}
 
 
 def change_password(email: str, old_password: str, new_password: str) -> dict:

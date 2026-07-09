@@ -10,7 +10,7 @@ from automator import (
     chat, generate_image_idea, business_idea, resume_improve,
     legal_review, math_solve, code_generate, email_compose, social_post
 )
-from auth import register, login, check_api_key, set_plan, change_password, ADMIN_KEY
+from auth import register, login, check_api_key, set_plan, change_password, reset_password, ADMIN_KEY
 from payment import PLANS
 from payment import robokassa_init_url, robokassa_verify
 
@@ -110,6 +110,7 @@ input::placeholder{color:#aaa}
 <div class="form-group"><label>Email</label><input type="email" id="loginEmail" required placeholder="your@email.com"></div>
 <div class="form-group"><label>Пароль</label><input type="password" id="loginPass" required placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"><span class="pw-toggle" onclick="togglePw('loginPass')">👁</span></div>
 <button type="submit" class="submit-btn">Войти</button>
+<div style="text-align:center;margin-top:12px"><a href="#" onclick="showResetPw()" style="color:var(--ink-soft);font-size:13px;text-decoration:underline">Забыли пароль?</a></div>
 </form>
 <form id="registerForm" style="display:none" onsubmit="return submitAuth('register')">
 <div class="form-group"><label>Email</label><input type="email" id="regEmail" required placeholder="your@email.com"></div>
@@ -128,11 +129,23 @@ input::placeholder{color:#aaa}
 </div>
 </section>
 <div style="text-align:center;padding:12px;font-size:11px;color:#666;background:#fff;border-top:1px solid #eee">ИНН: 526320301575 &middot; Самозанятый Маширов С.Д. &middot; <a href="/legal" style="color:#666;text-decoration:underline">Публичная оферта</a> &middot; <a href="/pricing" style="color:#666;text-decoration:underline">Тарифы</a></div>
+<div id="resetModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.5);align-items:center;justify-content:center" onclick="if(event.target===this)closeResetPw()">
+<div style="background:var(--bg);border-radius:16px;padding:32px;max-width:380px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2)">
+<h3 style="margin-bottom:16px;font-size:18px">Сброс пароля</h3>
+<p style="font-size:13px;color:var(--ink-soft);margin-bottom:16px">Введите email, указанный при регистрации</p>
+<div style="margin-bottom:16px"><input type="email" id="resetEmail" placeholder="your@email.com" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:transparent;color:var(--ink)"></div>
+<div id="resetMsg" style="font-size:13px;margin-bottom:12px"></div>
+<div style="display:flex;gap:8px"><button onclick="doResetPw()" style="flex:1;padding:10px;background:var(--ink);color:var(--bg);border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit">Отправить</button><button onclick="closeResetPw()" style="padding:10px 16px;background:transparent;border:1px solid var(--border);border-radius:8px;font-size:14px;cursor:pointer;color:var(--ink);font-family:inherit">Отмена</button></div>
+</div>
+</div>
 
 <script>
 function togglePw(id){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password'}
 function switchTab(t){document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));event.target.classList.add('active');document.getElementById('loginForm').style.display=t==='login'?'block':'none';document.getElementById('registerForm').style.display=t==='register'?'block':'none';document.getElementById('error').style.display='none'}
 async function submitAuth(t){event.preventDefault();const e=document.getElementById(t==='login'?'loginEmail':'regEmail').value,p=document.getElementById(t==='login'?'loginPass':'regPass').value;try{const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:t,email:e,password:p})});const d=await r.json();if(d.success){localStorage.setItem('api_key',d.api_key);localStorage.setItem('email',d.email);window.location.href='/app'}else{document.getElementById('error').textContent=d.error;document.getElementById('error').style.display='block'}}catch(er){document.getElementById('error').textContent='Ошибка соединения';document.getElementById('error').style.display='block'}return false}
+function showResetPw(){document.getElementById('resetModal').style.display='flex'}
+function closeResetPw(){document.getElementById('resetModal').style.display='none'}
+async function doResetPw(){const e=document.getElementById('resetEmail').value,m=document.getElementById('resetMsg');if(!e){m.textContent='Введите email';m.style.color='#dc2626';return}try{const r=await fetch('/api/reset-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e})});const d=await r.json();m.textContent=d.message||d.error;m.style.color=d.success?'#16a34a':'#dc2626'}catch(er){m.textContent='Ошибка соединения';m.style.color='#dc2626'}}
 
 (function(){
 const hero=document.getElementById('hero'),canvas=document.getElementById('heroMask');
@@ -757,12 +770,31 @@ def payment_create():
 
 @app.route("/api/payment/result", methods=["POST"])
 def payment_result():
+    all_params = dict(request.form)
     inv_id = request.form.get("InvId", "")
     out_sum = request.form.get("OutSum", "")
     signature = request.form.get("SignatureValue", "")
     email = request.form.get("Shp_Email", "")
     requests = request.form.get("Shp_Requests", "")
-    print(f"[PAYMENT] InvId={inv_id} OutSum={out_sum} Email={email} Requests={requests}")
+    print(f"[PAYMENT CALLBACK] InvId={inv_id} OutSum={out_sum} Email={email} Requests={requests} Sig={signature} AllParams={all_params}")
+
+    from payment import ROBOKASSA_SHOP_ID, ROBOKASSA_TEST_PASSWORD2, ROBOKASSA_PASSWORD2, ROBOKASSA_TEST
+    pwd2 = ROBOKASSA_TEST_PASSWORD2 if ROBOKASSA_TEST and ROBOKASSA_TEST_PASSWORD2 else ROBOKASSA_PASSWORD2
+    print(f"[PAYMENT DEBUG] ROBOKASSA_TEST={ROBOKASSA_TEST} ShopID={ROBOKASSA_SHOP_ID} Pwd2={pwd2[:4]}****")
+
+    import hashlib
+    crc_str = f"{ROBOKASSA_SHOP_ID}:{out_sum}:{inv_id}:{pwd2}"
+    shp_parts = []
+    if email:
+        shp_parts.append(f"Shp_Email={email}")
+    if requests:
+        shp_parts.append(f"Shp_Requests={requests}")
+    shp_parts.sort()
+    if shp_parts:
+        crc_str += ":" + ":".join(shp_parts)
+    expected = hashlib.md5(crc_str.encode()).hexdigest()
+    print(f"[PAYMENT DEBUG] Expected={expected} Got={signature} Match={expected.lower()==signature.lower()}")
+    print(f"[PAYMENT DEBUG] CrcStr={crc_str}")
 
     if robokassa_verify(inv_id, out_sum, signature, email, requests):
         print(f"[PAYMENT] Signature OK, setting plan for {email}")
@@ -824,6 +856,15 @@ def api_change_password():
     if not old_password or not new_password:
         return jsonify({"error": "Заполните оба поля"}), 400
     result = change_password(request.user["email"], old_password, new_password)
+    return jsonify(result)
+
+@app.route("/api/reset-password", methods=["POST"])
+def api_reset_password():
+    data = request.json
+    email = data.get("email", "").strip().lower()
+    if not email:
+        return jsonify({"error": "Введите email"}), 400
+    result = reset_password(email)
     return jsonify(result)
 
 @app.route("/api/admin/plan", methods=["POST"])
