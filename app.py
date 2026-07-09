@@ -803,6 +803,17 @@ def payment_logs_view():
 
 @app.route("/payment/success", methods=["GET", "POST"])
 def payment_success():
+    inv_id = request.args.get("InvId", "")
+    out_sum = request.args.get("OutSum", "")
+    signature = request.args.get("SignatureValue", "")
+    email = request.args.get("Shp_Email", "")
+    requests_val = request.args.get("Shp_Requests", "")
+
+    if inv_id and out_sum and signature and email:
+        if robokassa_verify(inv_id, out_sum, signature, email, requests_val):
+            if requests_val:
+                set_plan(email, "custom", 30, int(requests_val), create_if_missing=True)
+
     return """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Оплата прошла</title>
     <style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#fcfaf8;color:#26251e;text-align:center}
     .box{max-width:400px;padding:40px}.check{font-size:64px;margin-bottom:16px}.btn{display:inline-block;margin-top:20px;padding:12px 32px;background:#26251e;color:#fafafa;text-decoration:none;border-radius:46px;font-size:15px}
