@@ -629,7 +629,7 @@ h1{text-align:center;font-family:'Noto Serif SC',serif;font-size:36px;font-weigh
 <div class="divider">— или —</div>
 <div class="input-row">
 <label>Сумма:</label>
-<input type="number" id="sumInput" min="30" max="50000" value="300" step="10">
+<input type="number" id="sumInput" min="50" max="50000" value="300" step="10">
 <label>₽</label>
 </div>
 <div class="price-display" id="priceDisplay">300 ₽</div>
@@ -643,7 +643,7 @@ h1{text-align:center;font-family:'Noto Serif SC',serif;font-size:36px;font-weigh
 <div class="footer">AI-Automator &copy; 2026 &middot; ИНН: 526320301575 &middot; Самозанятый Маширов С.Д. &middot; <a href="/legal" style="color:inherit;text-decoration:underline">Публичная оферта</a></div>
 
 <script>
-const PRICE_PER_REQ=3;
+const PRICE_PER_REQ=5;
 const slider=document.getElementById('reqSlider');
 const reqVal=document.getElementById('reqVal');
 const sumInput=document.getElementById('sumInput');
@@ -660,7 +660,7 @@ perReq.textContent='≈ '+PRICE_PER_REQ+' ₽ за запрос';
 });
 
 sumInput.addEventListener('input',function(){
-const s=Math.max(30,Math.min(50000,parseInt(this.value)||30));
+const s=Math.max(50,Math.min(50000,parseInt(this.value)||50));
 const r=Math.round(s/PRICE_PER_REQ);
 slider.value=Math.min(1000,Math.max(10,r));
 reqVal.textContent=r;
@@ -675,7 +675,7 @@ const email=localStorage.getItem('email');
 if(!email){alert('Войдите в аккаунт для оплаты');window.location.href='/';return}
 const sum=parseInt(sumInput.value);
 const reqs=Math.round(sum/PRICE_PER_REQ);
-if(sum<30){alert('Минимальная сумма — 30 ₽');return}
+if(sum<50){alert('Минимальная сумма — 50 ₽');return}
 fetch('/api/payment/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:'custom',email:email,amount:sum,requests:reqs})}).then(r=>r.json()).then(d=>{if(d.confirmation_url){window.location.href=d.confirmation_url}else{alert(d.error||'Ошибка создания платежа')}}).catch(e=>alert('Ошибка: '+e.message))
 }
 </script>
@@ -705,8 +705,8 @@ def payment_create():
     if plan_id == "custom":
         amount = data.get("amount", 0)
         requests = data.get("requests", 0)
-        if amount < 30 or requests < 1:
-            return jsonify({"error": "Минимальная сумма — 30 ₽"}), 400
+        if amount < 50 or requests < 1:
+            return jsonify({"error": "Минимальная сумма — 50 ₽"}), 400
         description = f"AI-Automator: {requests} запросов"
         shp_requests = str(requests)
     else:
