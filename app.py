@@ -802,7 +802,7 @@ def api_usage():
 def admin_set_plan():
     data = request.json
     if data.get("admin_key") != ADMIN_KEY: return jsonify({"error": "Неверный ключ"}), 403
-    set_plan(data.get("email","").strip().lower(), data.get("plan","enterprise"), data.get("days",3650))
+    set_plan(data.get("email","").strip().lower(), data.get("plan","enterprise"), data.get("days",3650), data.get("requests",0))
     return jsonify({"success": True})
 
 @app.route("/api/process", methods=["POST"])
