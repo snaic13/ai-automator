@@ -208,11 +208,27 @@ def set_plan(email: str, plan: str, days: int = 30, requests: int = 0):
     limits = {"free": 10, "starter": 100, "pro": 500, "enterprise": 9999, "custom": 0}
     paid_until = (datetime.now() + timedelta(days=days)).strftime("%Y-%m-%d")
     req_limit = requests if requests > 0 else limits.get(plan, 10)
-    db_update(
-        "UPDATE users SET plan = %s, requests_limit = %s, paid_until = %s WHERE email = %s" if DATABASE_URL else
-        "UPDATE users SET plan = ?, requests_limit = ?, paid_until = ? WHERE email = ?",
-        (plan, req_limit, paid_until, email),
+
+    users = db_execute(
+        "SELECT id FROM users WHERE email = %s" if DATABASE_URL else
+        "SELECT id FROM users WHERE email = ?",
+        (email,),
     )
+
+    if not users:
+        api_key = generate_api_key()
+        random_password = secrets.token_hex(8)
+        db_update(
+            "INSERT INTO users (email, password_hash, api_key, plan, requests_limit, paid_until) VALUES (%s, %s, %s, %s, %s, %s)" if DATABASE_URL else
+            "INSERT INTO users (email, password_hash, api_key, plan, requests_limit, paid_until) VALUES (?, ?, ?, ?, ?, ?)",
+            (email, hash_password(random_password), api_key, plan, req_limit, paid_until),
+        )
+    else:
+        db_update(
+            "UPDATE users SET plan = %s, requests_limit = %s, paid_until = %s WHERE email = %s" if DATABASE_URL else
+            "UPDATE users SET plan = ?, requests_limit = ?, paid_until = ? WHERE email = ?",
+            (plan, req_limit, paid_until, email),
+        )
 
 
 ADMIN_KEY = "admin_snaic13_secret_2026"
