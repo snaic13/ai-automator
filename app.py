@@ -770,13 +770,16 @@ def payment_create():
 
 @app.route("/api/payment/result", methods=["POST"])
 def payment_result():
+    all_params = dict(request.form)
     inv_id = request.form.get("InvId", "")
     out_sum = request.form.get("OutSum", "")
     signature = request.form.get("SignatureValue", "")
     email = request.form.get("Shp_Email", "")
     requests = request.form.get("Shp_Requests", "")
+    print(f"[PAYMENT] InvId={inv_id} OutSum={out_sum} Email={email} Requests={requests} Sig={signature} Params={all_params}")
 
     if robokassa_verify(inv_id, out_sum, signature, email, requests):
+        print(f"[PAYMENT] OK - setting plan for {email}")
         if email:
             if requests:
                 set_plan(email, "custom", 30, int(requests), create_if_missing=True)
@@ -787,6 +790,7 @@ def payment_result():
                     set_plan(email, plan_id, plan["days"], create_if_missing=True)
         return "OK", 200
 
+    print(f"[PAYMENT] FAIL - invalid signature")
     return "INVALID SIGNATURE", 400
 
 
