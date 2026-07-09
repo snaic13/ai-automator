@@ -22,7 +22,7 @@ def robokassa_init_url(inv_id: str, amount: float, description: str, email: str,
 
     out_sum = f"{amount:.2f}"
     pwd1 = ROBOKASSA_TEST_PASSWORD1 if ROBOKASSA_TEST and ROBOKASSA_TEST_PASSWORD1 else ROBOKASSA_PASSWORD1
-    crc_str = f"{ROBOKASSA_SHOP_ID}:{out_sum}:{inv_id}:{pwd1}"
+    crc_str = f"{ROBOKASSA_SHOP_ID}:{out_sum}:{inv_id}:{pwd1}:Shp_Email={email}"
     if ROBOKASSA_TEST:
         crc_str += ":test"
 
@@ -45,10 +45,14 @@ def robokassa_init_url(inv_id: str, amount: float, description: str, email: str,
     return "https://auth.robokassa.ru/Merchant/Index.aspx?" + urllib.parse.urlencode(params)
 
 
-def robokassa_verify(inv_id: str, out_sum: str, signature_value: str) -> bool:
+def robokassa_verify(inv_id: str, out_sum: str, signature_value: str, email: str = "") -> bool:
     pwd2 = ROBOKASSA_TEST_PASSWORD2 if ROBOKASSA_TEST and ROBOKASSA_TEST_PASSWORD2 else ROBOKASSA_PASSWORD2
     if not pwd2:
         return False
     crc_str = f"{ROBOKASSA_SHOP_ID}:{out_sum}:{inv_id}:{pwd2}"
+    if email:
+        crc_str += f":Shp_Email={email}"
+    if ROBOKASSA_TEST:
+        crc_str += ":test"
     expected = hashlib.md5(crc_str.encode()).hexdigest()
     return signature_value.lower() == expected.lower()

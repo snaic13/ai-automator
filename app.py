@@ -659,9 +659,9 @@ def payment_result():
     inv_id = request.form.get("InvId", "")
     out_sum = request.form.get("OutSum", "")
     signature = request.form.get("SignatureValue", "")
+    email = request.form.get("Shp_Email", "")
 
-    if robokassa_verify(inv_id, out_sum, signature):
-        email = request.form.get("Shp_Email", "")
+    if robokassa_verify(inv_id, out_sum, signature, email):
         plan_id = request.form.get("Shp_plan", "")
         if email:
             plan = PLANS.get(plan_id)
