@@ -204,7 +204,7 @@ def chat(message: str) -> str:
         chat_history.pop(0)
 
     is_long_request = len(message) > 200 or any(w in message.lower() for w in ["подробно", "опиши", "расскажи", "сравни", "проанализируй", "объясни", "напиши эссе", "сделай отчёт"])
-    model = "gpt-4o" if is_long_request else "gpt-4o-mini"
+    model = "gpt-5.6" if is_long_request else "gpt-4o-mini"
     max_tok = 16000 if is_long_request else 4000
 
     try:
