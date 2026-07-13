@@ -17,6 +17,7 @@ from payment import robokassa_init_url, robokassa_verify
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 payment_logs = []
+pending_payments = {}  # {inv_id: {"email": email, "requests": requests, "plan": plan}}
 
 def login_required(f):
     @wraps(f)
@@ -755,6 +756,14 @@ def payment_create():
 
     print(f"[PAYMENT CREATE] plan={plan_id}, email={email}, amount={amount}, requests={shp_requests}, inv_id={inv_id}")
 
+    # Store pending payment for fallback processing
+    pending_payments[inv_id] = {
+        "email": email,
+        "requests": int(shp_requests),
+        "plan": plan_id,
+        "amount": amount,
+    }
+
     url = robokassa_init_url(
         inv_id=inv_id,
         amount=amount,
@@ -817,17 +826,43 @@ def payment_success():
 
     print(f"[PAYMENT SUCCESS PAGE] inv_id={inv_id}, email={email}, requests={requests_val}, sig={signature}")
 
+    processed = False
+
+    # Method 1: Verify signature and process
     if inv_id and out_sum and signature and email:
         if robokassa_verify(inv_id, out_sum, signature, email, requests_val):
             if requests_val:
                 set_plan(email, "custom", 30, int(requests_val), create_if_missing=True)
-                print(f"[PAYMENT SUCCESS] Set plan for {email}: custom, {requests_val} requests")
+                print(f"[PAYMENT SUCCESS] Method 1 OK: Set plan for {email}: custom, {requests_val} requests")
+                processed = True
             else:
-                print(f"[PAYMENT SUCCESS] No requests param for {email}")
+                print(f"[PAYMENT SUCCESS] No requests param from Robokassa for {email}")
         else:
             print(f"[PAYMENT SUCCESS] Signature verification FAILED for {email}")
-    else:
-        print(f"[PAYMENT SUCCESS] Missing params: inv_id={bool(inv_id)}, out_sum={bool(out_sum)}, sig={bool(signature)}, email={bool(email)}")
+
+    # Method 2: Use pending_payments stored at creation time (fallback)
+    if not processed and inv_id and inv_id in pending_payments:
+        pp = pending_payments.pop(inv_id)
+        pp_email = pp.get("email", email)
+        pp_requests = pp.get("requests", 0)
+        pp_plan = pp.get("plan", "custom")
+        if pp_email and pp_requests > 0:
+            set_plan(pp_email, pp_plan, 30, pp_requests, create_if_missing=True)
+            print(f"[PAYMENT SUCCESS] Method 2 (fallback): Set plan for {pp_email}: {pp_plan}, {pp_requests} requests")
+            processed = True
+
+    # Method 3: Use pending_payments by email (last resort)
+    if not processed and email:
+        for pid, pp in list(pending_payments.items()):
+            if pp.get("email") == email and pp.get("requests", 0) > 0:
+                pp_data = pending_payments.pop(pid)
+                set_plan(email, pp_data.get("plan", "custom"), 30, pp_data["requests"], create_if_missing=True)
+                print(f"[PAYMENT SUCCESS] Method 3 (email match): Set plan for {email}: {pp_data['plan']}, {pp_data['requests']} requests")
+                processed = True
+                break
+
+    if not processed:
+        print(f"[PAYMENT SUCCESS] WARNING: Could not process payment for inv_id={inv_id}, email={email}")
 
     return """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Оплата прошла</title>
     <style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#fcfaf8;color:#26251e;text-align:center}
