@@ -77,7 +77,7 @@ def automate(prompt: str, system: str = "Ты полезный AI-ассисте
             {"role": "system", "content": system},
             {"role": "user", "content": prompt},
         ],
-        max_tokens=MAX_TOKENS,
+        max_completion_tokens=MAX_TOKENS,
     )
     return response.choices[0].message.content
 
@@ -226,7 +226,7 @@ def chat(message: str) -> str:
         response = client.chat.completions.create(
             model=model,
             messages=messages,
-            max_tokens=max_tok,
+            max_completion_tokens=max_tok,
         )
         reply = response.choices[0].message.content
         chat_history.append({"role": "assistant", "content": reply})

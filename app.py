@@ -753,6 +753,8 @@ def payment_create():
     success_url = request.host_url + "payment/success"
     fail_url = request.host_url + "payment/fail"
 
+    print(f"[PAYMENT CREATE] plan={plan_id}, email={email}, amount={amount}, requests={shp_requests}, inv_id={inv_id}")
+
     url = robokassa_init_url(
         inv_id=inv_id,
         amount=amount,
@@ -779,21 +781,25 @@ def payment_result():
     requests = request.form.get("Shp_Requests", "")
     result = "FAIL" if not robokassa_verify(inv_id, out_sum, signature, email, requests) else "OK"
     from datetime import datetime
-    payment_logs.append({"time": datetime.now().isoformat(), "inv_id": inv_id, "out_sum": out_sum, "email": email, "requests": requests, "result": result, "sig": signature})
+    payment_logs.append({"time": datetime.now().isoformat(), "inv_id": inv_id, "out_sum": out_sum, "email": email, "requests": requests, "result": result, "sig": signature, "all_params": all_params})
     if len(payment_logs) > 50:
         payment_logs.pop(0)
+    print(f"[PAYMENT CALLBACK] inv_id={inv_id}, email={email}, requests={requests}, result={result}")
 
     if result == "OK":
         if email:
             if requests:
                 set_plan(email, "custom", 30, int(requests), create_if_missing=True)
+                print(f"[PAYMENT OK] Set plan for {email}: custom, {requests} requests")
             else:
                 plan_id = request.form.get("Shp_plan", "")
                 plan = PLANS.get(plan_id)
                 if plan:
                     set_plan(email, plan_id, plan["days"], create_if_missing=True)
+                    print(f"[PAYMENT OK] Set plan for {email}: {plan_id}")
         return "OK", 200
 
+    print(f"[PAYMENT FAIL] Signature mismatch for inv_id={inv_id}, email={email}")
     return "INVALID SIGNATURE", 400
 
 @app.route("/api/payment/logs")
@@ -809,10 +815,19 @@ def payment_success():
     email = request.args.get("Shp_Email", "")
     requests_val = request.args.get("Shp_Requests", "")
 
+    print(f"[PAYMENT SUCCESS PAGE] inv_id={inv_id}, email={email}, requests={requests_val}, sig={signature}")
+
     if inv_id and out_sum and signature and email:
         if robokassa_verify(inv_id, out_sum, signature, email, requests_val):
             if requests_val:
                 set_plan(email, "custom", 30, int(requests_val), create_if_missing=True)
+                print(f"[PAYMENT SUCCESS] Set plan for {email}: custom, {requests_val} requests")
+            else:
+                print(f"[PAYMENT SUCCESS] No requests param for {email}")
+        else:
+            print(f"[PAYMENT SUCCESS] Signature verification FAILED for {email}")
+    else:
+        print(f"[PAYMENT SUCCESS] Missing params: inv_id={bool(inv_id)}, out_sum={bool(out_sum)}, sig={bool(signature)}, email={bool(email)}")
 
     return """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Оплата прошла</title>
     <style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#fcfaf8;color:#26251e;text-align:center}
