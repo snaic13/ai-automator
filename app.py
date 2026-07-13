@@ -348,7 +348,7 @@ textarea::placeholder{color:var(--ink-soft);opacity:0.5}
 <script>
 const API_KEY=localStorage.getItem('api_key');
 if(!API_KEY)window.location.href='/';
-let mode='document',uploadedFile=null;
+let mode='chat',uploadedFile=null;
 document.getElementById('userEmail').textContent=localStorage.getItem('email')||'';
 const PH={chat:'Напишите сообщение...',document:'Вставьте текст документа...',support:'Введите вопрос клиента...',report:'Вставьте данные для отчёта...',summarize:'Вставьте длинный текст для резюмирования...',translate:'Вставьте текст для перевода...',code:'Опишите задачу или вставьте код...',sql:'Опишите задачу для SQL...',seo:'Вставьте текст для SEO-оптимизации...','image-idea':'Опишите какое изображение хотите получить...',business:'Опишите вашу идею или нишу...',resume:'Вставьте текст резюме или опишите опыт...',legal:'Вставьте текст договора или вопрос юристу...',math:'Введите задачу...',email:'Опишите кому и о чём письмо...',social:'Опишите для какой платформы и о чём пост...'};
 
